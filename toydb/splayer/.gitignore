@@ -1,0 +1,6 @@
+# build outputs (rebuild with: make -C toydb/splayer)
+*.o
+testslotted
+testfixed
+testload
+spbench

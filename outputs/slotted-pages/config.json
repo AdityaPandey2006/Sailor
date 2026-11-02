@@ -1,0 +1,44 @@
+{
+  "data_file": "../../data/student.txt",
+  "skip_header_lines": 1,
+  "buffer_pages": 20,
+  "seed": 42,
+  "space": {
+    "fixed_record_lengths": [
+      100,
+      108,
+      128,
+      160,
+      200,
+      256
+    ],
+    "delete_percentages": [
+      0,
+      20,
+      50
+    ],
+    "policy": "LRU",
+    "search": "cached"
+  },
+  "io": {
+    "layouts": [
+      {
+        "layout": "slotted"
+      },
+      {
+        "layout": "fixed",
+        "record_length": 108
+      }
+    ],
+    "search_modes": [
+      "cached",
+      "scan"
+    ],
+    "policies": [
+      "LRU",
+      "MRU"
+    ],
+    "delete_percentage": 20,
+    "repetitions": 3
+  }
+}

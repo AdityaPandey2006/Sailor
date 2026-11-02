@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ToyDB Part 2 Summary</title>
+<!-- Source of summary-part2.pdf (repository root). Regenerate with:
+     chrome --headless --no-pdf-header-footer --print-to-pdf=summary-part2.pdf summary-part2.html -->
+<style>
+  :root { --ink: #243247; --ink-2: #4a5568; --accent: #2a6475; --rule: #d6dde6; --band: #e4eaf1; --soft: #f4f6f9; }
+  @page { size: A4; margin: 16mm 17mm 16mm 17mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 10.2pt/1.45 "Segoe UI", Arial, Helvetica, sans-serif; }
+  .running { font-size: 8pt; color: var(--ink-2); border-bottom: 1px solid var(--rule); padding-bottom: 3px; margin-bottom: 14px; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  h1 { font-size: 22pt; text-align: center; margin: 4px 0 2px; color: #1b2433; }
+  .sub { text-align: center; font-size: 9pt; margin-bottom: 12px; }
+  h2 { font-size: 16pt; margin: 2px 0 10px; color: #1b2433; }
+  h3 { font-size: 11.5pt; color: var(--accent); margin: 14px 0 4px; }
+  p { margin: 4px 0 8px; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 8px; font-size: 8.8pt; }
+  th { background: var(--band); text-align: left; font-weight: 600; padding: 5px 6px; border-bottom: 1px solid #b9c4d1; }
+  td { padding: 4px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.hl td { font-weight: 600; background: var(--soft); }
+  pre { background: var(--soft); border: 1px solid var(--rule); padding: 7px 9px; font: 8.3pt/1.35 Consolas, "Courier New", monospace; white-space: pre; margin: 6px 0 8px; }
+  code { font: 8.8pt Consolas, "Courier New", monospace; }
+  .note { font-size: 8.5pt; color: var(--ink-2); }
+  img { width: 100%; display: block; margin: 6px 0; }
+  ul { margin: 4px 0 8px 18px; padding: 0; }
+  li { margin: 2px 0; }
+  .dense { font-size: 9.6pt; line-height: 1.38; }
+  .dense table { font-size: 8.3pt; }
+  .dense td { padding: 3px 6px; }
+</style>
+</head>
+<body>
+
+<!-- ============================ page 1 ============================ -->
+<section class="page">
+<div class="running">ToyDB | Part 2 slotted pages | Team handoff</div>
+<h1>ToyDB: slotted pages summary</h1>
+<div class="sub">Part 2 implementation and handoff | 2 November 2026</div>
+<p>This document summarizes the completed part-2 work: a slotted-page layer for variable-length records on top of the
+PF layer, a separate fixed-length (static) layer used as the baseline, their tests, and the space and I/O
+experiments on the 17,813 student records. Part 3 (index construction on roll-no) is next.</p>
+
+<h3>1. What was built</h3>
+<table>
+  <tr><th style="width:30%">File (toydb/splayer/)</th><th>Purpose</th></tr>
+  <tr><td><code>slotted.h/.c</code></td><td>Slotted-page layer: create/open/close, insert, delete, get by RID, sequential scan, space statistics</td></tr>
+  <tr><td><code>fixedrec.h/.c</code></td><td>Fixed-length layer with the same operations; every record occupies exactly L bytes</td></tr>
+  <tr><td><code>recfile.h/.c</code></td><td>Shared definitions only: RID packing, error codes, search modes, the space-statistics structure</td></tr>
+  <tr><td><code>studentdata.h/.c</code></td><td>Reads <code>data/student.txt</code> into raw records (title and blank lines skipped)</td></tr>
+  <tr><td><code>testslotted.c, testfixed.c, testload.c</code></td><td>C tests; <code>run_tests.py</code> builds and runs them all and writes a report</td></tr>
+  <tr><td><code>spbench.c, run_experiments.py, experiments.json</code></td><td>Experiment driver, runner and configuration</td></tr>
+</table>
+<p>No PF or AM source file was modified. Both layers use only the PF interface (<code>PF_AllocPage</code>,
+<code>PF_GetThisPage</code>, <code>PF_GetNextPage</code>, <code>PF_MarkDirty</code>, <code>PF_UnfixPage</code>,
+<code>PF_OpenFileWithPolicy</code>).</p>
+
+<h3>2. Slotted page layout</h3>
+<p>The whole 4096-byte PF data area is used; the PF layer keeps its own page header outside it. All fields are 16-bit
+integers at fixed offsets - no pointers are stored on disk.</p>
+<pre>offset 0  magic 0x5350 | 2 numSlots | 4 liveCount | 6 freeEnd
+offset 8  slot directory: numSlots x {offset, length}      (empty slot: offset 0)
+
+[header 8B][slot 0][slot 1]...[slot n-1]    free space    [rec]...[rec][rec]
+                                ^freeStart = 8 + 4n       ^freeEnd      ^4096</pre>
+<p>The directory grows forward and records grow backward. Because every delete compacts the page, records always
+fill exactly <code>[freeEnd, 4096)</code>; each fetched page is validated against this. Largest record: 4084 bytes.
+A record id is <code>RID = page &times; 65536 + slot</code> - one non-negative <code>int</code>, the type
+<code>AM_InsertEntry</code> expects (pages 0..32767, so the largest RID is exactly INT_MAX).</p>
+
+<h3>3. Operations</h3>
+<ul>
+  <li><b>Insert</b>: first page with enough contiguous room (reusing an empty slot if the page has one, otherwise
+      needing 4 more bytes for a new slot); a new page only if none fits. Mark dirty once, unfix.</li>
+  <li><b>Delete</b>: shift the records below the deleted one up by its length, fix their offsets, mark the slot empty,
+      drop empty slots at the end of the directory. Slot numbers of live records never change.</li>
+  <li><b>Scan</b>: copies each page into the scan handle and unfixes it at once - one logical read per page and no page
+      held fixed between calls, so even a 1-frame buffer pool works.</li>
+</ul>
+</section>
+
+<!-- ============================ page 2 ============================ -->
+<section class="page dense">
+<div class="running">ToyDB | Part 2 slotted pages | Team handoff</div>
+<h2>The six agreed design decisions</h2>
+<table>
+  <tr><th style="width:20%">Question</th><th style="width:27%">Options considered</th><th>Agreed decision and consequence</th></tr>
+  <tr><td>1. Record representation</td><td>A raw text line; B fields with length prefixes</td>
+      <td><b>A.</b> Each student.txt line stored unchanged; fields split on ";" when needed. Lets every record be verified byte-for-byte.</td></tr>
+  <tr><td>2. RIDs and slot reuse</td><td>A reuse deleted slots; B never reuse slot numbers</td>
+      <td><b>A.</b> RID = page &times; 65536 + slot. Lowest empty slot reused; trailing empty slots trimmed. <b>Part 3 rule:</b> delete a student's index entry before its slot can be reused, or the entry would point at a different record.</td></tr>
+  <tr><td>3. Records longer than L (fixed layout)</td><td>A truncate; B reject; C only test L &ge; longest</td>
+      <td><b>C with rejection reporting.</b> L &isin; {100, 108, 128, 160, 200, 256}; longest record is 108 bytes. Rejected records are counted per L, never truncated.</td></tr>
+  <tr><td>4. Utilization formula</td><td>A record bytes / (pages &times; 4096); B exclude page overhead</td>
+      <td><b>A</b> for both layouts. Every page byte is record data, metadata, padding or free; the four always sum to pages &times; 4096 (checked by the tests).</td></tr>
+  <tr><td>5. Page for an insert</td><td>A last page; B first fit; C on-disk free-space map</td>
+      <td><b>B</b> for the load and later inserts. Default search keeps each page's free space in memory (rebuilt on open) and fetches only the chosen page; a literal page-by-page scan is kept for comparison. Both choose identical pages.</td></tr>
+  <tr><td>6. When to compact</td><td>A on every delete; B lazily on insert</td>
+      <td><b>A.</b> Free space is always one contiguous region, so an insert only compares sizes; RIDs stay valid.</td></tr>
+</table>
+
+<h3>Smaller implementation choices (flagged for review)</h3>
+<ul>
+  <li>The fixed layout pads with <code>'\0'</code> and derives a record's length from the first pad byte, so it stores no per-slot length (purely static); records containing <code>'\0'</code> are rejected.</li>
+  <li>Pages are never released after deletes: utilization falls in proportion to deletions and re-inserted records refill the same pages.</li>
+  <li>The supplied K&amp;R PF code does not compile with GCC 14+ defaults (GCC 15 also defaults to C23). The Makefile builds it with <code>-std=gnu17 -fpermissive</code> instead of editing it. The part-1 build command needs the same flags; the root README is updated.</li>
+</ul>
+<p class="note">Full options, results and evidence: <code>outputs/design-decisions/part2-design-decisions.md</code> and the
+"Part 2 slotted pages" sheet of <code>toydb-design-decisions.xlsx</code>.</p>
+
+<h3>Tests: 26 of 26 cases pass</h3>
+<table>
+  <tr><th style="width:26%">Program (cases)</th><th>What it verifies</th></tr>
+  <tr><td><code>testslotted</code> (6)</td><td>RID boundaries; insert/get/error codes; max-size record; exact first-fit placements; compaction leaves one free region and other records intact; slot reuse; directory trimming; one logical read + one logical write per insert/delete; persistence after reopen; rejection of non-slotted pages; 4,000 random operations against an in-memory model with both search modes producing identical RIDs</td></tr>
+  <tr><td><code>testfixed</code> (6)</td><td>Slots per page for each L; oversized and <code>'\0'</code> rejection; slot reuse; I/O counts; padding accounting; L mismatch and slotted files refused on open; 4,000 random operations</td></tr>
+  <tr><td><code>testload</code> (2)</td><td>All 17,813 student records loaded into slotted and fixed (L = 100, 108, 128, 256), read back by RID and by scan, byte-for-byte; rejects exactly the records longer than L</td></tr>
+  <tr><td>part-1 PF tests (12)</td><td>Re-run after a genuine rebuild with the flags above (<code>run_tests.py --with-pf</code>)</td></tr>
+  <tr><td>Buffer sizes</td><td>Unit tests run with 1-, 2- and 20-frame pools in both search modes; the 1-frame runs prove no operation leaves a page fixed. Report: <code>outputs/slotted-pages/test-results.txt</code></td></tr>
+</table>
+</section>
+
+<!-- ============================ page 3 ============================ -->
+<section class="page">
+<div class="running">ToyDB | Part 2 slotted pages | Team handoff</div>
+<h2>Space utilization: slotted vs static</h2>
+<p>17,813 records, 1,759,011 bytes, longest 108 bytes. 4096-byte pages, 20-page LRU pool, first-fit insertion.</p>
+<table>
+  <tr><th>Layout</th><th class="n">L</th><th class="n">Stored</th><th class="n">Rejected</th><th class="n">Pages</th><th class="n">Rec/page</th><th class="n">Metadata B</th><th class="n">Padding B</th><th class="n">Free B</th><th class="n">Utilization</th></tr>
+  <tr class="hl"><td>Slotted</td><td class="n">-</td><td class="n">17,813</td><td class="n">0</td><td class="n">453</td><td class="n">39.3</td><td class="n">74,876</td><td class="n">0</td><td class="n">21,601</td><td class="n">94.80%</td></tr>
+  <tr><td>Fixed</td><td class="n">100</td><td class="n">12,064</td><td class="n">5,749</td><td class="n">302</td><td class="n">39.9</td><td class="n">3,926</td><td class="n">57,816</td><td class="n">1,600</td><td class="n">94.88%</td></tr>
+  <tr><td>Fixed</td><td class="n">108</td><td class="n">17,813</td><td class="n">0</td><td class="n">482</td><td class="n">37.0</td><td class="n">6,266</td><td class="n">206,727</td><td class="n">2,268</td><td class="n">89.10%</td></tr>
+  <tr><td>Fixed</td><td class="n">128</td><td class="n">17,813</td><td class="n">0</td><td class="n">575</td><td class="n">31.0</td><td class="n">6,900</td><td class="n">587,753</td><td class="n">1,536</td><td class="n">74.69%</td></tr>
+  <tr><td>Fixed</td><td class="n">160</td><td class="n">17,813</td><td class="n">0</td><td class="n">713</td><td class="n">25.0</td><td class="n">8,556</td><td class="n">1,150,961</td><td class="n">1,920</td><td class="n">60.23%</td></tr>
+  <tr><td>Fixed</td><td class="n">200</td><td class="n">17,813</td><td class="n">0</td><td class="n">891</td><td class="n">20.0</td><td class="n">9,801</td><td class="n">1,879,324</td><td class="n">1,400</td><td class="n">48.20%</td></tr>
+  <tr><td>Fixed</td><td class="n">256</td><td class="n">17,813</td><td class="n">0</td><td class="n">1,188</td><td class="n">15.0</td><td class="n">11,880</td><td class="n">3,093,365</td><td class="n">1,792</td><td class="n">36.15%</td></tr>
+</table>
+<img src="utilization.png" alt="Grouped bar chart of space utilization per layout after load, after 20% and after 50% deletion">
+<ul>
+  <li><b>Slotted pages beat every fixed layout that stores all records.</b> Slotted pays 4 bytes of slot directory per record (74,876 B in total); fixed L = 108 pays 206,727 B of padding, and padding grows linearly with L.</li>
+  <li>Fixed L = 100 matches slotted utilization only by rejecting 32% of the students.</li>
+  <li>After deleting 20% / 50%, slotted utilization is 75.84% / 47.40% (fixed L = 108: 71.28% / 44.55%). Re-inserting the same records restores the after-load figure exactly in every layout; the page count never changes.</li>
+</ul>
+</section>
+
+<!-- ============================ page 4 ============================ -->
+<section class="page">
+<div class="running">ToyDB | Part 2 slotted pages | Team handoff</div>
+<h2>I/O cost and handoff</h2>
+<p>Load phase, 20-page pool; every modifying phase ends with a close so all dirty pages are written inside it. Counts are
+identical over 3 repetitions; times are means.</p>
+<table>
+  <tr><th>Layout</th><th>Search</th><th>Policy</th><th class="n">Logical reads</th><th class="n">Physical reads</th><th class="n">Physical writes</th><th class="n">Time (ms)</th></tr>
+  <tr><td>Slotted</td><td>cached</td><td>LRU</td><td class="n">17,360</td><td class="n">11</td><td class="n">464</td><td class="n">10</td></tr>
+  <tr><td>Slotted</td><td>scan</td><td>LRU</td><td class="n">4,011,349</td><td class="n">4,003,039</td><td class="n">17,038</td><td class="n">4,568</td></tr>
+  <tr><td>Slotted</td><td>scan</td><td>MRU</td><td class="n">4,011,349</td><td class="n">3,677,408</td><td class="n">14,704</td><td class="n">4,195</td></tr>
+  <tr><td>Fixed 108</td><td>cached</td><td>LRU</td><td class="n">17,331</td><td class="n">0</td><td class="n">482</td><td class="n">9</td></tr>
+  <tr><td>Fixed 108</td><td>scan</td><td>LRU</td><td class="n">4,296,307</td><td class="n">4,288,537</td><td class="n">17,093</td><td class="n">4,624</td></tr>
+  <tr><td>Fixed 108</td><td>scan</td><td>MRU</td><td class="n">4,296,307</td><td class="n">3,961,885</td><td class="n">14,878</td><td class="n">4,098</td></tr>
+</table>
+<img src="io_load.png" alt="Load-phase physical reads, logical reads and time per search mode and policy">
+<ul>
+  <li>The literal first-fit scan re-reads the full pages on every insert: about 4 million reads to load the file, roughly 450&times; slower than the cached search, which places every record identically.</li>
+  <li>Under that repeated-scan pattern MRU saves about 8% of physical reads over LRU - the part-1 effect on a real workload. A sequential scan costs one read per page (453 slotted, 482 fixed L = 108).</li>
+  <li>Times use a monotonic clock in WSL with the OS file cache; they show relative cost, not disk latency.</li>
+</ul>
+
+<h3>Handoff for part 3 (index on roll-no)</h3>
+<ul>
+  <li>Use <code>SP_InsertRec</code>'s RID directly as the AM <code>recId</code>; <code>REC_SplitRid</code> recovers (page, slot).</li>
+  <li>Extract the roll-no by splitting the stored line on ";" (confirm which field holds roll-no before indexing).</li>
+  <li>"Index on existing file" = <code>SP_ScanOpen/SP_ScanNext</code> + <code>AM_InsertEntry</code>; "incremental" = insert record then index entry.</li>
+  <li>If records are deleted, remove the index entry first (decision 2). The AM layer itself has not yet been rebuilt or tested.</li>
+</ul>
+
+<h3>Build, test and reproduce (Linux/WSL, repository root)</h3>
+<pre>make -C toydb/splayer                                  # also rebuilds PF with -std=gnu17 -fpermissive
+python3 toydb/splayer/run_tests.py --with-pf           # 26 cases, report in outputs/slotted-pages/
+python3 -m venv ~/.venvs/toydb &amp;&amp; ~/.venvs/toydb/bin/pip install matplotlib
+~/.venvs/toydb/bin/python toydb/splayer/run_experiments.py   # settings: toydb/splayer/experiments.json</pre>
+</section>
+
+</body>
+</html>

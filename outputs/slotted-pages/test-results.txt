@@ -1,0 +1,928 @@
+ToyDB part 2 test results - 2026-11-02 07:32:22 UTC
+26/26 cases passed
+
+PASS  testhash  (0.01s)
+PASS  testpf  (0.01s)
+PASS  teststats  (0.00s)
+PASS  testcapacity 1  (0.01s)
+PASS  testcapacity 2  (0.01s)
+PASS  testcapacity 5  (0.00s)
+PASS  testcapacity 20  (0.01s)
+PASS  testcapacity 32  (0.01s)
+PASS  testreplacement lru  (0.01s)
+PASS  testreplacement mru  (0.00s)
+PASS  testdirty lru  (0.01s)
+PASS  testdirty mru  (0.01s)
+PASS  testslotted 1 cached  (0.09s)
+PASS  testslotted 1 scan  (0.09s)
+PASS  testslotted 2 cached  (0.08s)
+PASS  testslotted 2 scan  (0.07s)
+PASS  testslotted 20 cached  (0.05s)
+PASS  testslotted 20 scan  (0.04s)
+PASS  testfixed 1 cached  (0.04s)
+PASS  testfixed 1 scan  (0.04s)
+PASS  testfixed 2 cached  (0.03s)
+PASS  testfixed 2 scan  (0.03s)
+PASS  testfixed 20 cached  (0.01s)
+PASS  testfixed 20 scan  (0.01s)
+PASS  testload data/student.txt 1 17813 100 108 128 256  (0.20s)
+PASS  testload data/student.txt 20 17813 100 108 128 256  (0.21s)
+
+========================================================================
+testhash  -> exit 0
+========================================================================
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+found 
+bucket 0
+	empty
+bucket 1
+	empty
+bucket 2
+	empty
+bucket 3
+	empty
+bucket 4
+	empty
+bucket 5
+	empty
+bucket 6
+	empty
+bucket 7
+	empty
+bucket 8
+	empty
+bucket 9
+	empty
+bucket 10
+	empty
+bucket 11
+	empty
+bucket 12
+	empty
+bucket 13
+	empty
+bucket 14
+	empty
+bucket 15
+	empty
+bucket 16
+	empty
+bucket 17
+	empty
+bucket 18
+	empty
+bucket 19
+	empty
+
+========================================================================
+testpf  -> exit 0
+========================================================================
+file1 created
+file2 created
+opened file1
+allocated page 0
+allocated page 1
+allocated page 2
+allocated page 3
+allocated page 4
+allocated page 5
+allocated page 6
+allocated page 7
+allocated page 8
+allocated page 9
+allocated page 10
+allocated page 11
+allocated page 12
+allocated page 13
+allocated page 14
+allocated page 15
+allocated page 16
+allocated page 17
+allocated page 18
+allocated page 19
+opening file1
+reading file
+got page 0, 0
+got page 1, 1
+got page 2, 2
+got page 3, 3
+got page 4, 4
+got page 5, 5
+got page 6, 6
+got page 7, 7
+got page 8, 8
+got page 9, 9
+got page 10, 10
+got page 11, 11
+got page 12, 12
+got page 13, 13
+got page 14, 14
+got page 15, 15
+got page 16, 16
+got page 17, 17
+got page 18, 18
+got page 19, 19
+eof reached
+opened file2
+allocated page 0
+allocated page 1
+allocated page 2
+allocated page 3
+allocated page 4
+allocated page 5
+allocated page 6
+allocated page 7
+allocated page 8
+allocated page 9
+allocated page 10
+allocated page 11
+allocated page 12
+allocated page 13
+allocated page 14
+allocated page 15
+allocated page 16
+allocated page 17
+allocated page 18
+allocated page 19
+opening file2
+reading file
+got page 0, 0
+got page 1, 1
+got page 2, 2
+got page 3, 3
+got page 4, 4
+got page 5, 5
+got page 6, 6
+got page 7, 7
+got page 8, 8
+got page 9, 9
+got page 10, 10
+got page 11, 11
+got page 12, 12
+got page 13, 13
+got page 14, 14
+got page 15, 15
+got page 16, 16
+got page 17, 17
+got page 18, 18
+got page 19, 19
+eof reached
+opened file1
+opened file2
+disposed 0 of file2
+disposed 1 of file1
+disposed 2 of file2
+disposed 3 of file1
+disposed 4 of file2
+disposed 5 of file1
+disposed 6 of file2
+disposed 7 of file1
+disposed 8 of file2
+disposed 9 of file1
+disposed 10 of file2
+disposed 11 of file1
+disposed 12 of file2
+disposed 13 of file1
+disposed 14 of file2
+disposed 15 of file1
+disposed 16 of file2
+disposed 17 of file1
+disposed 18 of file2
+disposed 19 of file1
+closed file1
+closed file2
+opening file1
+reading file
+got page 0, 0
+got page 2, 2
+got page 4, 4
+got page 6, 6
+got page 8, 8
+got page 10, 10
+got page 12, 12
+got page 14, 14
+got page 16, 16
+got page 18, 18
+eof reached
+opening file2
+reading file
+got page 1, 1
+got page 3, 3
+got page 5, 5
+got page 7, 7
+got page 9, 9
+got page 11, 11
+got page 13, 13
+got page 15, 15
+got page 17, 17
+got page 19, 19
+eof reached
+file1 created
+file2 created
+opened file1
+allocated page 0
+allocated page 1
+allocated page 2
+allocated page 3
+allocated page 4
+allocated page 5
+allocated page 6
+allocated page 7
+allocated page 8
+allocated page 9
+allocated page 10
+allocated page 11
+allocated page 12
+allocated page 13
+allocated page 14
+allocated page 15
+allocated page 16
+allocated page 17
+allocated page 18
+allocated page 19
+opened file2
+allocated page 0
+allocated page 1
+allocated page 2
+allocated page 3
+allocated page 4
+allocated page 5
+allocated page 6
+allocated page 7
+allocated page 8
+allocated page 9
+allocated page 10
+allocated page 11
+allocated page 12
+allocated page 13
+allocated page 14
+allocated page 15
+allocated page 16
+allocated page 17
+allocated page 18
+allocated page 19
+opened file1
+opened file2
+alloc 20 file1
+alloc 20 file2
+alloc 21 file1
+alloc 21 file2
+alloc 22 file1
+alloc 22 file2
+alloc 23 file1
+alloc 23 file2
+alloc 24 file1
+alloc 24 file2
+alloc 25 file1
+alloc 25 file2
+alloc 26 file1
+alloc 26 file2
+alloc 27 file1
+alloc 27 file2
+alloc 28 file1
+alloc 28 file2
+alloc 29 file1
+alloc 29 file2
+alloc 30 file1
+alloc 30 file2
+alloc 31 file1
+alloc 31 file2
+alloc 32 file1
+alloc 32 file2
+alloc 33 file1
+alloc 33 file2
+alloc 34 file1
+alloc 34 file2
+alloc 35 file1
+alloc 35 file2
+alloc 36 file1
+alloc 36 file2
+alloc 37 file1
+alloc 37 file2
+alloc 38 file1
+alloc 38 file2
+alloc 39 file1
+alloc 39 file2
+dispose fd2 page 20
+dispose fd1 page 21
+dispose fd2 page 22
+dispose fd1 page 23
+dispose fd2 page 24
+dispose fd1 page 25
+dispose fd2 page 26
+dispose fd1 page 27
+dispose fd2 page 28
+dispose fd1 page 29
+dispose fd2 page 30
+dispose fd1 page 31
+dispose fd2 page 32
+dispose fd1 page 33
+dispose fd2 page 34
+dispose fd1 page 35
+dispose fd2 page 36
+dispose fd1 page 37
+dispose fd2 page 38
+dispose fd1 page 39
+getting file2
+21 21
+23 23
+25 25
+27 27
+29 29
+31 31
+33 33
+35 35
+37 37
+39 39
+getting file1
+20 20
+22 22
+24 24
+26 26
+28 28
+30 30
+32 32
+34 34
+36 36
+38 38
+reading file
+got page 0, 0
+got page 1, 1
+got page 2, 2
+got page 3, 3
+got page 4, 4
+got page 5, 5
+got page 6, 6
+got page 7, 7
+got page 8, 8
+got page 9, 9
+got page 10, 10
+got page 11, 11
+got page 12, 12
+got page 13, 13
+got page 14, 14
+got page 15, 15
+got page 16, 16
+got page 17, 17
+got page 18, 18
+got page 19, 19
+got page 21, 21
+got page 23, 23
+got page 25, 25
+got page 27, 27
+got page 29, 29
+got page 31, 31
+got page 33, 33
+got page 35, 35
+got page 37, 37
+got page 39, 39
+eof reached
+reading file
+got page 0, 0
+got page 1, 1
+got page 2, 2
+got page 3, 3
+got page 4, 4
+got page 5, 5
+got page 6, 6
+got page 7, 7
+got page 8, 8
+got page 9, 9
+got page 10, 10
+got page 11, 11
+got page 12, 12
+got page 13, 13
+got page 14, 14
+got page 15, 15
+got page 16, 16
+got page 17, 17
+got page 18, 18
+got page 19, 19
+got page 20, 20
+got page 22, 22
+got page 24, 24
+got page 26, 26
+got page 28, 28
+got page 30, 30
+got page 32, 32
+got page 34, 34
+got page 36, 36
+got page 38, 38
+eof reached
+putting stuff into holes in fd1
+printing fd1reading file
+got page 0, 0
+got page 1, 1
+got page 2, 2
+got page 3, 3
+got page 4, 4
+got page 5, 5
+got page 6, 6
+got page 7, 7
+got page 8, 8
+got page 9, 9
+got page 10, 10
+got page 11, 11
+got page 12, 12
+got page 13, 13
+got page 14, 14
+got page 15, 15
+got page 16, 16
+got page 17, 17
+got page 18, 18
+got page 19, 19
+got page 20, 20
+got page 22, 22
+got page 23, 23
+got page 24, 24
+got page 25, 25
+got page 26, 26
+got page 27, 27
+got page 28, 28
+got page 29, 29
+got page 30, 30
+got page 31, 31
+got page 32, 32
+got page 33, 33
+got page 34, 34
+got page 35, 35
+got page 36, 36
+got page 37, 37
+got page 38, 38
+got page 39, 39
+eof reached
+closed file1
+closed file2
+opened file1
+got page1
+opened file1 again
+reading file
+got page 0, 0
+got page 1, 1
+got page 2, 2
+got page 3, 3
+got page 4, 4
+got page 5, 5
+got page 6, 6
+got page 7, 7
+got page 8, 8
+got page 9, 9
+got page 10, 10
+got page 11, 11
+got page 12, 12
+got page 13, 13
+got page 14, 14
+got page 15, 15
+got page 16, 16
+got page 17, 17
+got page 18, 18
+got page 19, 19
+got page 20, 20
+got page 22, 22
+got page 23, 23
+got page 24, 24
+got page 25, 25
+got page 26, 26
+got page 27, 27
+got page 28, 28
+got page 29, 29
+got page 30, 30
+got page 31, 31
+got page 32, 32
+got page 33, 33
+got page 34, 34
+got page 35, 35
+got page 36, 36
+got page 37, 37
+got page 38, 38
+got page 39, 39
+eof reached
+reading file
+got page 0, 0
+got page 1, 1
+got page 2, 2
+got page 3, 3
+got page 4, 4
+got page 5, 5
+got page 6, 6
+got page 7, 7
+got page 8, 8
+got page 9, 9
+got page 10, 10
+got page 11, 11
+got page 12, 12
+got page 13, 13
+got page 14, 14
+got page 15, 15
+got page 16, 16
+got page 17, 17
+got page 18, 18
+got page 19, 19
+got page 20, 20
+got page 22, 22
+got page 23, 23
+got page 24, 24
+got page 25, 25
+got page 26, 26
+got page 27, 27
+got page 28, 28
+got page 29, 29
+got page 30, 30
+got page 31, 31
+got page 32, 32
+got page 33, 33
+got page 34, 34
+got page 35, 35
+got page 36, 36
+got page 37, 37
+got page 38, 38
+got page 39, 39
+eof reached
+buffer:
+buffer content:
+empty
+hash table:
+bucket 0
+	empty
+bucket 1
+	empty
+bucket 2
+	empty
+bucket 3
+	empty
+bucket 4
+	empty
+bucket 5
+	empty
+bucket 6
+	empty
+bucket 7
+	empty
+bucket 8
+	empty
+bucket 9
+	empty
+bucket 10
+	empty
+bucket 11
+	empty
+bucket 12
+	empty
+bucket 13
+	empty
+bucket 14
+	empty
+bucket 15
+	empty
+bucket 16
+	empty
+bucket 17
+	empty
+bucket 18
+	empty
+bucket 19
+	empty
+
+[stderr]
+destroy file1, should not succeed:file already open
+dispose page 100, should fail:invalid page number
+dispose page1, should fail:Page already fixed in buffer
+unfix fd1 again, should fail:page already unfixed
+
+========================================================================
+teststats  -> exit 0
+========================================================================
+Statistics: passed
+
+========================================================================
+testcapacity 1  -> exit 0
+========================================================================
+Capacity 1: passed
+
+========================================================================
+testcapacity 2  -> exit 0
+========================================================================
+Capacity 2: passed
+
+========================================================================
+testcapacity 5  -> exit 0
+========================================================================
+Capacity 5: passed
+
+========================================================================
+testcapacity 20  -> exit 0
+========================================================================
+Capacity 20: passed
+
+========================================================================
+testcapacity 32  -> exit 0
+========================================================================
+Capacity 32: passed
+
+========================================================================
+testreplacement lru  -> exit 0
+========================================================================
+lru global replacement: passed
+
+========================================================================
+testreplacement mru  -> exit 0
+========================================================================
+mru global replacement: passed
+
+========================================================================
+testdirty lru  -> exit 0
+========================================================================
+lru explicit dirty marking: passed
+
+========================================================================
+testdirty mru  -> exit 0
+========================================================================
+mru explicit dirty marking: passed
+
+========================================================================
+testslotted 1 cached  -> exit 0
+========================================================================
+testslotted: 1 buffer pages, cached search
+  rid encoding ok
+  insert/get/error handling ok
+  fill pages ok
+  first fit ok
+  delete + compaction ok
+  slot reuse ok
+  directory trimming ok
+  dirty marking / I/O accounting ok
+  persistence ok
+  4000 random operations ok (cached and scan search agree)
+testslotted: all checks passed
+
+========================================================================
+testslotted 1 scan  -> exit 0
+========================================================================
+testslotted: 1 buffer pages, scan search
+  rid encoding ok
+  insert/get/error handling ok
+  fill pages ok
+  first fit ok
+  delete + compaction ok
+  slot reuse ok
+  directory trimming ok
+  dirty marking / I/O accounting ok
+  persistence ok
+  4000 random operations ok (cached and scan search agree)
+testslotted: all checks passed
+
+========================================================================
+testslotted 2 cached  -> exit 0
+========================================================================
+testslotted: 2 buffer pages, cached search
+  rid encoding ok
+  insert/get/error handling ok
+  fill pages ok
+  first fit ok
+  delete + compaction ok
+  slot reuse ok
+  directory trimming ok
+  dirty marking / I/O accounting ok
+  persistence ok
+  4000 random operations ok (cached and scan search agree)
+testslotted: all checks passed
+
+========================================================================
+testslotted 2 scan  -> exit 0
+========================================================================
+testslotted: 2 buffer pages, scan search
+  rid encoding ok
+  insert/get/error handling ok
+  fill pages ok
+  first fit ok
+  delete + compaction ok
+  slot reuse ok
+  directory trimming ok
+  dirty marking / I/O accounting ok
+  persistence ok
+  4000 random operations ok (cached and scan search agree)
+testslotted: all checks passed
+
+========================================================================
+testslotted 20 cached  -> exit 0
+========================================================================
+testslotted: 20 buffer pages, cached search
+  rid encoding ok
+  insert/get/error handling ok
+  fill pages ok
+  first fit ok
+  delete + compaction ok
+  slot reuse ok
+  directory trimming ok
+  dirty marking / I/O accounting ok
+  persistence ok
+  4000 random operations ok (cached and scan search agree)
+testslotted: all checks passed
+
+========================================================================
+testslotted 20 scan  -> exit 0
+========================================================================
+testslotted: 20 buffer pages, scan search
+  rid encoding ok
+  insert/get/error handling ok
+  fill pages ok
+  first fit ok
+  delete + compaction ok
+  slot reuse ok
+  directory trimming ok
+  dirty marking / I/O accounting ok
+  persistence ok
+  4000 random operations ok (cached and scan search agree)
+testslotted: all checks passed
+
+========================================================================
+testfixed 1 cached  -> exit 0
+========================================================================
+testfixed: 1 buffer pages, cached search
+  slots per page ok
+  insert/get/reject ok
+  delete + slot reuse ok
+  dirty marking / I/O accounting ok
+  persistence + layout checks ok
+  4000 random operations ok (cached and scan search agree)
+testfixed: all checks passed
+
+========================================================================
+testfixed 1 scan  -> exit 0
+========================================================================
+testfixed: 1 buffer pages, scan search
+  slots per page ok
+  insert/get/reject ok
+  delete + slot reuse ok
+  dirty marking / I/O accounting ok
+  persistence + layout checks ok
+  4000 random operations ok (cached and scan search agree)
+testfixed: all checks passed
+
+========================================================================
+testfixed 2 cached  -> exit 0
+========================================================================
+testfixed: 2 buffer pages, cached search
+  slots per page ok
+  insert/get/reject ok
+  delete + slot reuse ok
+  dirty marking / I/O accounting ok
+  persistence + layout checks ok
+  4000 random operations ok (cached and scan search agree)
+testfixed: all checks passed
+
+========================================================================
+testfixed 2 scan  -> exit 0
+========================================================================
+testfixed: 2 buffer pages, scan search
+  slots per page ok
+  insert/get/reject ok
+  delete + slot reuse ok
+  dirty marking / I/O accounting ok
+  persistence + layout checks ok
+  4000 random operations ok (cached and scan search agree)
+testfixed: all checks passed
+
+========================================================================
+testfixed 20 cached  -> exit 0
+========================================================================
+testfixed: 20 buffer pages, cached search
+  slots per page ok
+  insert/get/reject ok
+  delete + slot reuse ok
+  dirty marking / I/O accounting ok
+  persistence + layout checks ok
+  4000 random operations ok (cached and scan search agree)
+testfixed: all checks passed
+
+========================================================================
+testfixed 20 scan  -> exit 0
+========================================================================
+testfixed: 20 buffer pages, scan search
+  slots per page ok
+  insert/get/reject ok
+  delete + slot reuse ok
+  dirty marking / I/O accounting ok
+  persistence + layout checks ok
+  4000 random operations ok (cached and scan search agree)
+testfixed: all checks passed
+
+========================================================================
+testload data/student.txt 1 17813 100 108 128 256  -> exit 0
+========================================================================
+testload: 17813 records, 1759011 bytes, longest 108 bytes
+  slotted: 17813 records, 453 pages, utilization 94.80%
+  fixed L=100: 12064 records, 5749 rejected, 302 pages, utilization 94.88%
+  fixed L=108: 17813 records, 0 rejected, 482 pages, utilization 89.10%
+  fixed L=128: 17813 records, 0 rejected, 575 pages, utilization 74.69%
+  fixed L=256: 17813 records, 0 rejected, 1188 pages, utilization 36.15%
+testload: all checks passed
+
+========================================================================
+testload data/student.txt 20 17813 100 108 128 256  -> exit 0
+========================================================================
+testload: 17813 records, 1759011 bytes, longest 108 bytes
+  slotted: 17813 records, 453 pages, utilization 94.80%
+  fixed L=100: 12064 records, 5749 rejected, 302 pages, utilization 94.88%
+  fixed L=108: 17813 records, 0 rejected, 482 pages, utilization 89.10%
+  fixed L=128: 17813 records, 0 rejected, 575 pages, utilization 74.69%
+  fixed L=256: 17813 records, 0 rejected, 1188 pages, utilization 36.15%
+testload: all checks passed

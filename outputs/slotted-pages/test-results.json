@@ -1,0 +1,163 @@
+{
+  "timestamp": "2026-11-02 07:32:22 UTC",
+  "passed": 26,
+  "total": 26,
+  "cases": [
+    {
+      "case": "testhash",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.006
+    },
+    {
+      "case": "testpf",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.007
+    },
+    {
+      "case": "teststats",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.004
+    },
+    {
+      "case": "testcapacity 1",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.005
+    },
+    {
+      "case": "testcapacity 2",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.005
+    },
+    {
+      "case": "testcapacity 5",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.005
+    },
+    {
+      "case": "testcapacity 20",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.006
+    },
+    {
+      "case": "testcapacity 32",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.005
+    },
+    {
+      "case": "testreplacement lru",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.005
+    },
+    {
+      "case": "testreplacement mru",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.005
+    },
+    {
+      "case": "testdirty lru",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.006
+    },
+    {
+      "case": "testdirty mru",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.005
+    },
+    {
+      "case": "testslotted 1 cached",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.087
+    },
+    {
+      "case": "testslotted 1 scan",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.088
+    },
+    {
+      "case": "testslotted 2 cached",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.079
+    },
+    {
+      "case": "testslotted 2 scan",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.071
+    },
+    {
+      "case": "testslotted 20 cached",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.047
+    },
+    {
+      "case": "testslotted 20 scan",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.042
+    },
+    {
+      "case": "testfixed 1 cached",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.037
+    },
+    {
+      "case": "testfixed 1 scan",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.036
+    },
+    {
+      "case": "testfixed 2 cached",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.031
+    },
+    {
+      "case": "testfixed 2 scan",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.028
+    },
+    {
+      "case": "testfixed 20 cached",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.01
+    },
+    {
+      "case": "testfixed 20 scan",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.009
+    },
+    {
+      "case": "testload data/student.txt 1 17813 100 108 128 256",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.205
+    },
+    {
+      "case": "testload data/student.txt 20 17813 100 108 128 256",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.206
+    }
+  ]
+}
