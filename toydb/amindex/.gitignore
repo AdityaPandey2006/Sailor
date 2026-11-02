@@ -1,0 +1,4 @@
+# build outputs (rebuild with: make -C toydb/amindex)
+build/
+ixbench
+testindex

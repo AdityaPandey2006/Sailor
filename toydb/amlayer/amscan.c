@@ -95,6 +95,11 @@ if (value == NULL)
   
 /* search for the pagenumber and index of value */
 status = AM_Search(fileDesc,attrType,attrLength,value,&pageNum,&pageBuf,&index);
+/* PART 3 FIX 1: AM_Search pushes the root-to-leaf path onto AM_Stack (50
+   entries), and only insert/delete emptied it, so on a tree whose root is
+   an internal node the 51st scan overflowed AM_Stack.  Scans never use the
+   stack, so it is emptied here. */
+AM_EmptyStack();
 searchpageNum = pageNum;
 /* check for errors */
 if (status < 0) 
@@ -113,12 +118,19 @@ key */
 if (index > header->numKeys) 
   if (header->nextLeafPage != AM_NULL_PAGE)
   {
-  errVal = PF_GetThisPage(fileDesc,header->nextLeafPage,&pageBuf);
+  /* PART 3 FIX 2: the original code copied the next leaf's header over
+     `header` and then used header->nextLeafPage, i.e. the leaf after the
+     next one, to unfix the page and as pageNum.  The unfix failed
+     (PFE_PAGEUNFIXED -> AME_PF) and the next leaf stayed fixed, so every
+     search for an absent key that sorts after the last key of a leaf
+     failed.  The next leaf's number is now saved first. */
+  int nextLeaf = header->nextLeafPage;
+  errVal = PF_GetThisPage(fileDesc,nextLeaf,&pageBuf);
   AM_Check;
   bcopy(pageBuf,header,AM_sl);
-  errVal = PF_UnfixPage(fileDesc,header->nextLeafPage,FALSE);
+  errVal = PF_UnfixPage(fileDesc,nextLeaf,FALSE);
   AM_Check;
-  pageNum = header->nextLeafPage;
+  pageNum = nextLeaf;
   index = 1;
   }
   else 
@@ -377,10 +389,12 @@ if (AM_scanTable[scanDesc].op == NOT_EQUAL)
             AM_Check;
             bcopy(pageBuf + AM_sl + header->attrLength,
                &AM_scanTable[scanDesc].nextRecIdPtr,AM_ss);
-            bcopy(pageBuf,header,AM_sl);
+            /* PART 3 FIX 3: same defect as FIX 2 - unfix the page that was
+               fixed (now nextpageNum) before its header replaces `header` */
             errVal = PF_UnfixPage(AM_scanTable[scanDesc].fileDesc
-                ,header->nextLeafPage,FALSE);
+                ,AM_scanTable[scanDesc].nextpageNum,FALSE);
             AM_Check;
+            bcopy(pageBuf,header,AM_sl);
            }
 /* if not the first call to findnextentry , check if previous record has 
 been deleted */

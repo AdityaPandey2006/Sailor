@@ -4,7 +4,7 @@
 | --- | --- | --- | --- | --- |
 | 1 | PF page buffering (LRU/MRU, dirty flag, statistics) | Done | `toydb/pflayer/` | `outputs/page-buffering/`, `summary.pdf` |
 | 2 | Slotted pages for variable-length records vs fixed-length records | Done | `toydb/splayer/` | `outputs/slotted-pages/`, `summary-part2.pdf` |
-| 3 | Index construction on roll-no (AM layer, bulk loading) | Not started | `toydb/amlayer/` | - |
+| 3 | Index construction on roll-no (AM layer): Methods 1-2 | Part A done; Part B (bulk loading) pending | `toydb/amindex/` | `outputs/index-construction/` |
 
 Design decisions for every part are in `outputs/design-decisions/`. The
 workbook has one sheet per part, and part 2 also has a Markdown version.
@@ -220,8 +220,43 @@ about 4.5 s against 10 ms. With the scan search, MRU saves about 8% of those
 reads compared with LRU, because the search repeatedly scans more pages than
 the pool holds.
 
+## Part 3: index on roll-no (Part A: Methods 1 and 2)
+
+`toydb/amindex/` builds an AM B+ tree index on the Student file (the part-2
+slotted-page file), keyed on roll-no (field 2, an 8-byte `'c'` key). Method 1
+indexes an existing Student file. Method 2 builds the file and the index
+together. A shared benchmark, validator and tree checker are ready for
+Method 3. Details and the Part B handover are in `toydb/amindex/README.md`,
+and the decisions are in `outputs/design-decisions/part3-design-decisions.md`.
+
+```sh
+make -C toydb/amindex
+python3 toydb/amindex/run_tests.py          # -> outputs/index-construction/test-results.txt
+python3 toydb/amindex/run_experiments.py    # -> outputs/index-construction/comparison.md
+```
+
+Three bugs in the supplied `amlayer/amscan.c` were fixed (marked
+`PART 3 FIX n`). A scan stack overflow occurred after 50 scans, and a wrong
+page was unfixed when searching for absent keys (twice).
+
+### Preliminary results (20-page buffer, LRU, 2,500 queries)
+
+| Metric | Method 1 | Method 2 |
+| --- | --- | --- |
+| Records indexed | 17,813 | 17,813 |
+| Construction time | 9.6 ms | 17.2 ms |
+| Setup + construction time | 17.6 ms | 17.2 ms |
+| Construction pages accessed | 35,931 | 52,838 |
+| Query completion time | 3.2 ms | 3.1 ms |
+| Query pages accessed | 9,522 (3.81/query) | 9,522 (3.81/query) |
+
+Both methods give the same 2-level tree (109 leaves, 64% full), because
+Method 1's scan feeds AM the keys in the same order Method 2 inserted them.
+The methods therefore differ only in construction cost.
+
 ## Remaining scope
 
-Part 3 has not been started. The AM layer and its tests have not been rebuilt
-or validated. Existing legacy C declarations and warnings in the supplied
-code have not been modernized.
+Part 3 Part B (bulk loading from a pre-sorted file, Method 3) is pending. The
+supplied AM test programs (`amlayer/test*.c`) have not been rebuilt. Existing
+legacy C declarations and warnings in the supplied code have not been
+modernized.

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ToyDB Part 3 Summary</title>
+<!-- Source of "summary-part3(1).pdf" (repository root). Regenerate with:
+     chrome --headless --no-pdf-header-footer --print-to-pdf="summary-part3(1).pdf" summary-part3-1.html -->
+<style>
+  :root { --ink: #243247; --ink-2: #4a5568; --accent: #2a6475; --rule: #d6dde6; --band: #e4eaf1; --soft: #f4f6f9; }
+  @page { size: A4; margin: 16mm 17mm 16mm 17mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 10.2pt/1.45 "Segoe UI", Arial, Helvetica, sans-serif; }
+  .running { font-size: 8pt; color: var(--ink-2); border-bottom: 1px solid var(--rule); padding-bottom: 3px; margin-bottom: 14px; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  h1 { font-size: 22pt; text-align: center; margin: 4px 0 2px; color: #1b2433; }
+  .sub { text-align: center; font-size: 9pt; margin-bottom: 12px; }
+  h2 { font-size: 16pt; margin: 2px 0 10px; color: #1b2433; }
+  h3 { font-size: 11.5pt; color: var(--accent); margin: 14px 0 4px; }
+  p { margin: 4px 0 8px; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 8px; font-size: 8.8pt; }
+  th { background: var(--band); text-align: left; font-weight: 600; padding: 5px 6px; border-bottom: 1px solid #b9c4d1; }
+  td { padding: 4px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.hl td { font-weight: 600; background: var(--soft); }
+  pre { background: var(--soft); border: 1px solid var(--rule); padding: 7px 9px; font: 8.3pt/1.35 Consolas, "Courier New", monospace; white-space: pre; margin: 6px 0 8px; }
+  code { font: 8.8pt Consolas, "Courier New", monospace; }
+  .note { font-size: 8.5pt; color: var(--ink-2); }
+  ul { margin: 4px 0 8px 18px; padding: 0; }
+  li { margin: 2px 0; }
+  .dense { font-size: 9.6pt; line-height: 1.38; }
+  .dense table { font-size: 8.3pt; }
+  .dense td { padding: 3px 6px; }
+  .status { border: 1px solid var(--rule); background: var(--soft); padding: 7px 10px; margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<!-- ============================ page 1 ============================ -->
+<section class="page dense">
+<div class="running">ToyDB | Part 3 index construction (Part A) | Progress summary</div>
+<h1>ToyDB: index construction summary (1)</h1>
+<div class="sub">Part 3, Part A: Methods 1 and 2 | 2 November 2026</div>
+
+<p>Part 3 builds a B+ tree index on the Student file, keyed on roll-no, using the supplied AM layer. Three
+construction methods are to be compared. This document covers what is finished so far: <b>Method 1</b>
+(index an existing file), <b>Method 2</b> (build the file and the index together), the shared benchmark and
+validation code, the test results and the preliminary measurements. <b>Method 3</b> (bulk loading from a
+pre-sorted file) is Part B and has not been started.</p>
+
+<div class="status"><b>Status.</b> Part A complete: both methods build valid indexes that the normal AM search
+APIs can read. All 4 test runs pass, and the core tests also pass under AddressSanitizer and UBSan.
+Preliminary results are below. Part B (Method 3) is pending and plugs into the existing benchmark without
+changing it.</div>
+
+<h3>1. What was built</h3>
+<table>
+  <tr><th style="width:32%">File (toydb/amindex/)</th><th>Purpose</th></tr>
+  <tr><td><code>ixbuild.c</code></td><td>Method 1, Method 2, and the method table <code>IX_Methods[]</code> where Method 3 is registered</td></tr>
+  <tr><td><code>ixindex.h/.c</code></td><td>Shared code: roll-no key extraction, measurement (time + PF counters), query sets and runner, tree inspection, validation</td></tr>
+  <tr><td><code>amwrap.h</code></td><td>Includes the K&amp;R <code>am.h</code> safely from modern C and adds AM prototypes</td></tr>
+  <tr><td><code>ixbench.c</code></td><td>Benchmark CLI: builds with method K, checks the tree, validates, times the query file; one JSON line per run</td></tr>
+  <tr><td><code>testindex.c</code></td><td>Correctness tests (real data and a synthetic 150,000-record file)</td></tr>
+  <tr><td><code>run_tests.py</code>, <code>run_experiments.py</code>, <code>experiments.json</code></td><td>Test runner and configurable experiment runner; results go to <code>outputs/index-construction/</code></td></tr>
+  <tr><td><code>README.md</code></td><td>Build/run instructions, index file format and the Part B handover</td></tr>
+</table>
+<p class="note">Reused without changes: the PF layer (part 1) for paging and I/O counters, and the slotted-page
+Student file (part 2) for records and RIDs. The only existing file edited is <code>toydb/amlayer/amscan.c</code>
+(three bug fixes, section 5).</p>
+
+<h3>2. The two methods</h3>
+<table>
+  <tr><th style="width:16%">Method</th><th>Steps</th><th style="width:30%">What "construction" measures</th></tr>
+  <tr><td><b>1. Existing file</b></td><td>Open the existing Student file; <code>AM_CreateIndex</code>; sequential scan
+    (<code>SP_ScanNext</code>); for each record extract roll-no and RID and call <code>AM_InsertEntry</code>; close both files.</td>
+    <td>Create + scan + inserts + closing (flushes dirty pages). Writing the file first and opening it are reported as setup.</td></tr>
+  <tr><td><b>2. Incremental</b></td><td>Create an empty Student file and an empty index; for each dataset record call
+    <code>SP_InsertRec</code> (gives the RID), then <code>AM_InsertEntry</code>; close both files.</td>
+    <td>Everything: the file and the index are built together, so there is no separate setup.</td></tr>
+</table>
+
+<h3>3. Key design decisions</h3>
+<ul>
+  <li><b>Roll-no</b> is field 2 of each line (e.g. <code>95302001</code>, <code>96D07001</code>). All 17,813 values are 8 characters and some contain letters, so the key is an AM <code>'c'</code> key of length 8, compared in byte order.</li>
+  <li><b>RID</b> is part 2's <code>page &times; 65536 + slot</code>, a non-negative <code>int</code>, which is exactly AM's <code>recId</code> type.</li>
+  <li><b>Duplicates:</b> the data has 3 roll-nos that appear twice. AM stores one key with a list of RIDs, and an EQUAL search returns all of them (17,813 entries, 17,810 distinct keys).</li>
+  <li><b>Records without a roll-no</b> are stored but not indexed and are counted as skipped (none in the real data).</li>
+  <li><b>Index file</b> is the unmodified AM format: PF file <code>&lt;studentFile&gt;.0</code>, opened with <code>PF_OpenFile</code>.</li>
+</ul>
+<p class="note">Full options and reasoning: <code>outputs/design-decisions/part3-design-decisions.md</code>.</p>
+</section>
+
+<!-- ============================ page 2 ============================ -->
+<section class="page dense">
+<div class="running">ToyDB | Part 3 index construction (Part A) | Progress summary</div>
+<h2>Preliminary results</h2>
+
+<p>Dataset <code>data/student.txt</code> (17,813 records). 2,500 point queries: 2,000 existing roll-nos and 500
+absent ones, generated once with seed 42 and run in the same order for every method. LRU replacement. Each
+value is the median of 5 independent runs; query time is the median of 5 repetitions per run, each starting
+with none of the index's pages in the buffer pool.</p>
+<p class="note"><b>Pages accessed</b> = PF logical reads (page requests to the buffer pool). <b>Disk reads/writes</b>
+= PF physical I/O. Construction and query numbers come from separate counter snapshots.</p>
+
+<h3>Required comparison table (20-frame buffer pool)</h3>
+<table>
+  <tr><th>Metric</th><th class="n">Method 1 (existing)</th><th class="n">Method 2 (incremental)</th></tr>
+  <tr><td>Records indexed</td><td class="n">17,813</td><td class="n">17,813</td></tr>
+  <tr class="hl"><td>Construction time</td><td class="n">9.56 ms</td><td class="n">17.18 ms</td></tr>
+  <tr><td>Setup outside construction</td><td class="n">8.01 ms</td><td class="n">0.00 ms</td></tr>
+  <tr><td>Setup + construction (end to end)</td><td class="n">17.58 ms</td><td class="n">17.18 ms</td></tr>
+  <tr><td>Construction pages accessed</td><td class="n">35,931</td><td class="n">52,838</td></tr>
+  <tr><td>Construction disk reads / writes</td><td class="n">519 / 176</td><td class="n">77 / 640</td></tr>
+  <tr class="hl"><td>Query completion time (2,500 queries)</td><td class="n">3.23 ms</td><td class="n">3.09 ms</td></tr>
+  <tr class="hl"><td>Query pages accessed</td><td class="n">9,522</td><td class="n">9,522</td></tr>
+  <tr><td>Pages accessed per query</td><td class="n">3.81</td><td class="n">3.81</td></tr>
+  <tr><td>Query disk reads</td><td class="n">2,060</td><td class="n">2,060</td></tr>
+  <tr><td>Tree height / internal / leaf pages</td><td class="n">2 / 1 / 109</td><td class="n">2 / 1 / 109</td></tr>
+  <tr><td>Mean leaf fill</td><td class="n">64.4%</td><td class="n">64.4%</td></tr>
+</table>
+
+<h3>Effect of buffer pool size</h3>
+<table>
+  <tr><th>Buffer frames</th><th class="n">M1 construction</th><th class="n">M2 construction</th><th class="n">M1 constr. disk R / W</th><th class="n">M2 constr. disk R / W</th><th class="n">Query time M1 / M2</th><th class="n">Query disk reads</th></tr>
+  <tr><td>20</td><td class="n">9.56 ms</td><td class="n">17.18 ms</td><td class="n">519 / 176</td><td class="n">77 / 640</td><td class="n">3.23 / 3.09 ms</td><td class="n">2,060</td></tr>
+  <tr><td>50</td><td class="n">10.39 ms</td><td class="n">15.59 ms</td><td class="n">482 / 139</td><td class="n">39 / 602</td><td class="n">2.44 / 2.45 ms</td><td class="n">1,375</td></tr>
+  <tr><td>200</td><td class="n">9.41 ms</td><td class="n">16.32 ms</td><td class="n">463 / 120</td><td class="n">15 / 578</td><td class="n">1.25 / 1.29 ms</td><td class="n">110</td></tr>
+</table>
+<p class="note">Pages accessed do not depend on the pool size (35,931 / 52,838 for construction, 9,522 for queries).
+With 200 frames the whole 110-page index fits in the pool, so each query page is read from disk only once.</p>
+
+<h3>What the numbers show</h3>
+<ul>
+  <li><b>Methods 1 and 2 build the same tree.</b> Method 1's sequential scan returns records in RID order, which is
+    the order Method 2 inserted them, so AM receives the same key sequence. Query cost is therefore identical, and the
+    methods differ only in construction cost.</li>
+  <li><b>Construction alone:</b> Method 1 is about 45% faster and makes about 32% fewer page requests, because the
+    Student file already exists. <b>End to end</b> (including writing the file) the two cost about the same.</li>
+  <li><b>I/O pattern:</b> Method 1 re-reads the whole Student file (about 464 pages) during its scan. Method 2 reads
+    almost nothing from disk but writes more, because Student-file and index pages compete for the same buffer pool.</li>
+  <li><b>Per query:</b> about 4 page requests for a hit (root lookup for the leftmost leaf, root, leaf, leaf again
+    in <code>AM_FindNextEntry</code>) and about 3 for a miss.</li>
+  <li>Leaves are only 64% full because inserts split leaves in half. A sorted bulk load (Method 3) should give fuller
+    leaves and fewer pages; that is the main comparison for Part B.</li>
+</ul>
+</section>
+
+<!-- ============================ page 3 ============================ -->
+<section class="page dense">
+<div class="running">ToyDB | Part 3 index construction (Part A) | Progress summary</div>
+<h2>Correctness and AM fixes</h2>
+
+<h3>4. Tests (all passing)</h3>
+<table>
+  <tr><th style="width:44%">Check</th><th>How</th></tr>
+  <tr><td>Existing, non-existing and several roll-nos</td><td>Explicit searches after reopening the index, including the 3 duplicated roll-nos</td></tr>
+  <tr><td>Every RID points to the right Student record</td><td><code>IX_Validate</code>: for <b>every</b> distinct key, the EQUAL scan returns exactly as many distinct RIDs as the dataset has records with that roll-no, and each RID's record has that roll-no; plus 202 absent keys below, between and above the real ones</td></tr>
+  <tr><td>Entry count = records indexed</td><td>Full AM scan (17,813 entries in key order) and a walk of the whole tree</td></tr>
+  <tr><td>Close and reopen</td><td>Validation and queries reopen the index; queries are repeated on a second reopen and must give identical answers and page counts</td></tr>
+  <tr><td>B+ tree invariants</td><td><code>IX_InspectTree</code>: page types, sorted keys, separator ranges, equal leaf depth, complete leaf chain, leftmost leaf = page 2</td></tr>
+  <tr><td>Index valid during Method 2</td><td>Invariants and searches checked at 20 points while records are still being inserted</td></tr>
+  <tr><td>Both methods agree</td><td>Identical answers (RID checksum) for 600 queries</td></tr>
+  <tr><td>Node splitting and multiple levels</td><td>Synthetic 150,000-record file (random order, duplicates, records without a roll-no) gives a 3-level tree: 5 internal pages, 894 leaves</td></tr>
+  <tr><td>No page left fixed</td><td>Tests run with 3, 20 and 200 buffer frames; 3 is AM's minimum (a root split fixes 3 pages)</td></tr>
+</table>
+<p class="note">Log: <code>outputs/index-construction/test-results.txt</code>. Run with <code>python3 toydb/amindex/run_tests.py</code>.</p>
+
+<h3>5. Bugs found and fixed in the supplied AM layer</h3>
+<table>
+  <tr><th style="width:30%">Bug</th><th>Effect</th><th style="width:26%">Fix (in <code>amscan.c</code>)</th></tr>
+  <tr><td><code>AM_OpenIndexScan</code> pushes the search path onto a 50-entry stack that only insert/delete empty</td>
+      <td>Once the tree has 2+ levels, the 51st search writes past the end of <code>AM_Stack</code> (found with AddressSanitizer)</td>
+      <td>FIX 1: empty the stack after the search</td></tr>
+  <tr><td>Absent key that sorts after the last key of a leaf: the next leaf's header overwrites the current one before its page number is used</td>
+      <td>The wrong page is unfixed, so the search fails with <code>AME_PF</code> and the next leaf stays fixed in the buffer</td>
+      <td>FIX 2: save the next leaf's page number first</td></tr>
+  <tr><td>Same pattern in <code>AM_FindNextEntry</code> for <code>NOT_EQUAL</code> scans</td><td>Same as above</td><td>FIX 3</td></tr>
+</table>
+<p>Each fix is a few lines and is marked <code>PART 3 FIX n</code>; search results are otherwise unchanged.
+Separately, <code>toydb/amlayer/pf.h</code> still says pages are 1020 bytes while the PF layer uses 4096. That file
+was not edited: the amindex Makefile compiles copies of the AM sources so they use the correct header, and a
+test checks that the root's <code>maxKeys</code> is 340 (the 4096-byte value).</p>
+
+<h3>6. How to build and run</h3>
+<pre>make -C toydb/amindex                      # builds ixbench and testindex
+python3 toydb/amindex/run_tests.py         # all tests  -> outputs/index-construction/test-results.txt
+python3 toydb/amindex/run_experiments.py   # benchmark  -> outputs/index-construction/comparison.md
+
+# one method by hand
+./ixbench queries --data ../../data/student.txt --hits 2000 --misses 500 --seed 42 --out work/q.txt
+./ixbench run --method 1 --data ../../data/student.txt --queries work/q.txt --workdir work --validate</pre>
+<p class="note">Build under Linux/WSL. Generated Student and index files go to a temporary or <code>--workdir</code>
+directory and are deleted after each run; <code>data/student.txt</code> is only read.</p>
+</section>
+
+<!-- ============================ page 4 ============================ -->
+<section class="page dense">
+<div class="running">ToyDB | Part 3 index construction (Part A) | Progress summary</div>
+<h2>Handover for Part B and remaining work</h2>
+
+<h3>7. Adding Method 3 (bulk loading)</h3>
+<ol style="margin:4px 0 8px 18px; padding:0">
+  <li>Write <code>ixbulk.c</code> with <code>int IX_Method3(const IX_BuildSpec *spec, IX_BuildResult *r)</code>: sort a copy of
+    the dataset by key, write the sorted Student file (measured as setup), bulk-build the index from the sorted
+    (key, RID) pairs (measured as construction, including closing the files), and set the record counts.</li>
+  <li>Register it in <code>IX_Methods[]</code> (<code>ixbuild.c</code>) and add <code>build/ixbulk.o</code> to the Makefile.</li>
+  <li>Check it with <code>ixbench run --method 3 --validate</code>, add <code>3</code> to <code>"methods"</code> in
+    <code>experiments.json</code> and rerun <code>run_experiments.py</code>. The table gains a Method 3 column with the
+    same queries and the same procedure.</li>
+</ol>
+
+<h3>8. Index format rules Method 3 must keep</h3>
+<table>
+  <tr><th style="width:30%">Rule</th><th>Reason</th></tr>
+  <tr><td>Root is always page 0</td><td>AM searches start at the file's first page, and inserts detect a root split by page number 0</td></tr>
+  <tr><td>Leftmost leaf is page 2 when the root is internal</td><td>Hard-coded in <code>GetLeftPageNum</code> for full and <code>&lt;</code>, <code>&lt;=</code>, <code>!=</code> scans; checked by <code>IX_InspectTree</code></td></tr>
+  <tr><td>Leaf: 24-byte header, then sorted <code>[8-byte key][2-byte list offset]</code>; RID nodes <code>[4-byte RID][2-byte next]</code> grow down from the page end</td><td>At most 254 distinct keys per leaf</td></tr>
+  <tr><td>Internal: 8-byte header, then <code>[child0][key1][child1]...</code>, <code>maxKeys = 340</code></td><td>Child <i>i</i> holds keys from key<sub>i</sub> (inclusive) up to key<sub>i+1</sub>; later AM inserts must still split correctly</td></tr>
+  <tr><td>All RIDs of one key stay in one leaf</td><td>AM's EQUAL scan stops at the end of the leaf</td></tr>
+</table>
+<p class="note">Method 3's Student file is sorted, so its RIDs (and RID checksum) will differ from Methods 1 and 2;
+correctness is shown by <code>--validate</code> and by equal found/RID counts. Full details:
+<code>toydb/amindex/README.md</code>.</p>
+
+<h3>9. Remaining work and limitations</h3>
+<ul>
+  <li><b>Pending:</b> Method 3 (bulk loading), its comparison against Methods 1 and 2, and the final Part 3 summary.</li>
+  <li>Only point queries are benchmarked; range queries are not measured.</li>
+  <li>AM allows about 670 RIDs per key (the real data has at most 2).</li>
+  <li>Times are in milliseconds and vary between runs, so medians are reported; page counts are deterministic and are
+    the more reliable metric.</li>
+  <li>The supplied AM test programs (<code>amlayer/test*.c</code>) have not been rebuilt.</li>
+</ul>
+
+<h3>10. Files</h3>
+<table>
+  <tr><th style="width:42%">Location</th><th>Content</th></tr>
+  <tr><td><code>toydb/amindex/</code></td><td>All Part A code, tests and runners</td></tr>
+  <tr><td><code>toydb/amlayer/amscan.c</code></td><td>Three marked bug fixes</td></tr>
+  <tr><td><code>outputs/index-construction/</code></td><td><code>comparison.md</code>, <code>summary.csv</code>, <code>results.csv</code>, <code>raw_results.jsonl</code>, <code>queries.txt</code>, <code>config.json</code>, test logs, this summary's source</td></tr>
+  <tr><td><code>outputs/design-decisions/part3-design-decisions.md</code></td><td>Design decisions with options and evidence</td></tr>
+</table>
+</section>
+
+</body>
+</html>

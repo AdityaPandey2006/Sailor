@@ -1,0 +1,10 @@
+{
+  "dataset": "data/student.txt",
+  "methods": [1, 2],
+  "buffer_sizes": [20, 50, 200],
+  "policy": "lru",
+  "queries": {"hits": 2000, "misses": 500, "seed": 42},
+  "query_reps": 5,
+  "runs": 5,
+  "validate": true
+}
