@@ -1,0 +1,22 @@
+{
+  "buffer_pages": 20,
+  "file_pages": 100,
+  "operations": 10000,
+  "write_percentages": [
+    0,
+    25,
+    50,
+    75,
+    100
+  ],
+  "access_patterns": [
+    "sequential",
+    "random"
+  ],
+  "policies": [
+    "LRU",
+    "MRU"
+  ],
+  "repetitions": 3,
+  "seed": 42
+}
