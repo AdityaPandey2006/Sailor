@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-02 07:32:22 UTC",
+  "timestamp": "2026-11-03 02:07:38 UTC",
   "passed": 26,
   "total": 26,
   "cases": [
@@ -7,13 +7,13 @@
       "case": "testhash",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.006
+      "seconds": 0.003
     },
     {
       "case": "testpf",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.007
+      "seconds": 0.008
     },
     {
       "case": "teststats",
@@ -25,139 +25,139 @@
       "case": "testcapacity 1",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.005
+      "seconds": 0.004
     },
     {
       "case": "testcapacity 2",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.005
+      "seconds": 0.004
     },
     {
       "case": "testcapacity 5",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.005
+      "seconds": 0.004
     },
     {
       "case": "testcapacity 20",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.006
+      "seconds": 0.004
     },
     {
       "case": "testcapacity 32",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.005
+      "seconds": 0.004
     },
     {
       "case": "testreplacement lru",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.005
+      "seconds": 0.004
     },
     {
       "case": "testreplacement mru",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.005
+      "seconds": 0.002
     },
     {
       "case": "testdirty lru",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.006
+      "seconds": 0.003
     },
     {
       "case": "testdirty mru",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.005
+      "seconds": 0.003
     },
     {
       "case": "testslotted 1 cached",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.087
+      "seconds": 0.18
     },
     {
       "case": "testslotted 1 scan",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.088
+      "seconds": 0.182
     },
     {
       "case": "testslotted 2 cached",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.079
+      "seconds": 0.145
     },
     {
       "case": "testslotted 2 scan",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.071
+      "seconds": 0.109
     },
     {
       "case": "testslotted 20 cached",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.047
+      "seconds": 0.064
     },
     {
       "case": "testslotted 20 scan",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.042
+      "seconds": 0.065
     },
     {
       "case": "testfixed 1 cached",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.037
+      "seconds": 0.042
     },
     {
       "case": "testfixed 1 scan",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.036
+      "seconds": 0.048
     },
     {
       "case": "testfixed 2 cached",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.031
+      "seconds": 0.049
     },
     {
       "case": "testfixed 2 scan",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.028
+      "seconds": 0.042
     },
     {
       "case": "testfixed 20 cached",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.01
+      "seconds": 0.012
     },
     {
       "case": "testfixed 20 scan",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.009
+      "seconds": 0.013
     },
     {
       "case": "testload data/student.txt 1 17813 100 108 128 256",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.205
+      "seconds": 0.164
     },
     {
       "case": "testload data/student.txt 20 17813 100 108 128 256",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.206
+      "seconds": 0.146
     }
   ]
 }

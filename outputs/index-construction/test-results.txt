@@ -1,7 +1,18 @@
-Part 3 index tests - 2026-11-02 12:06:58 UTC
-4/4 passed
+Part 3 index tests - 2026-11-03 02:07:52 UTC
+5/5 passed
 
-=== PASS testindex bufsize=3 synthetic=150000 (3.671 s)
+=== PASS testbulk boundaries, duplicate limits, MRU and AM mutations (1.41 s)
+$ toydb/amindex/testbulk <tmpdir>
+bulk boundary 0: passed
+bulk boundary 1: passed
+bulk boundary 254: passed
+bulk boundary 255: passed
+bulk boundary 508: passed
+bulk boundary 509: passed
+bulk boundary 87000: passed
+bulk edges: all passed
+
+=== PASS testindex bufsize=3 synthetic=150000 (7.209 s)
 $ toydb/amindex/testindex data/student.txt <tmpdir> 3 150000
 testindex: buffer pool 3 frames
   keys: ok
@@ -9,13 +20,15 @@ testindex: buffer pool 3 frames
     method 1: height 2, 1 internal + 109 leaf pages, 17810 keys, 17813 entries, 3 duplicate keys: valid
     method 2: height 2, 1 internal + 109 leaf pages, 17810 keys, 17813 entries, valid at 20 checkpoints and at the end
     queries: 500 found, 100 not found, identical answers from both methods; 2301 pages accessed (method 1)
+    method 3: height 2, 71 leaves, all RIDs validated
   dataset synthetic: 150000 records, 149849 with a roll-no
     method 1: height 3, 5 internal + 894 leaf pages, 144043 keys, 149849 entries, 149 duplicate keys: valid
     method 2: height 3, 5 internal + 894 leaf pages, 144043 keys, 149849 entries, valid at 20 checkpoints and at the end
     queries: 500 found, 100 not found, identical answers from both methods; 3920 pages accessed (method 1)
+    method 3: height 3, 576 leaves, all RIDs validated
 testindex: all tests passed
 
-=== PASS testindex bufsize=20 synthetic=150000 (2.441 s)
+=== PASS testindex bufsize=20 synthetic=150000 (4.189 s)
 $ toydb/amindex/testindex data/student.txt <tmpdir> 20 150000
 testindex: buffer pool 20 frames
   keys: ok
@@ -23,13 +36,15 @@ testindex: buffer pool 20 frames
     method 1: height 2, 1 internal + 109 leaf pages, 17810 keys, 17813 entries, 3 duplicate keys: valid
     method 2: height 2, 1 internal + 109 leaf pages, 17810 keys, 17813 entries, valid at 20 checkpoints and at the end
     queries: 500 found, 100 not found, identical answers from both methods; 2301 pages accessed (method 1)
+    method 3: height 2, 71 leaves, all RIDs validated
   dataset synthetic: 150000 records, 149849 with a roll-no
     method 1: height 3, 5 internal + 894 leaf pages, 144043 keys, 149849 entries, 149 duplicate keys: valid
     method 2: height 3, 5 internal + 894 leaf pages, 144043 keys, 149849 entries, valid at 20 checkpoints and at the end
     queries: 500 found, 100 not found, identical answers from both methods; 3920 pages accessed (method 1)
+    method 3: height 3, 576 leaves, all RIDs validated
 testindex: all tests passed
 
-=== PASS testindex bufsize=200 synthetic=0 (0.171 s)
+=== PASS testindex bufsize=200 synthetic=0 (0.182 s)
 $ toydb/amindex/testindex data/student.txt <tmpdir> 200 0
 testindex: buffer pool 200 frames
   keys: ok
@@ -37,13 +52,16 @@ testindex: buffer pool 200 frames
     method 1: height 2, 1 internal + 109 leaf pages, 17810 keys, 17813 entries, 3 duplicate keys: valid
     method 2: height 2, 1 internal + 109 leaf pages, 17810 keys, 17813 entries, valid at 20 checkpoints and at the end
     queries: 500 found, 100 not found, identical answers from both methods; 2301 pages accessed (method 1)
+    method 3: height 2, 71 leaves, all RIDs validated
 testindex: all tests passed
 
-=== PASS ixbench methods 1+2 --validate (bufsize=20) (0.35 s)
+=== PASS ixbench methods 1+2+3 --validate (bufsize=20) (0.18 s)
 $ toydb/amindex/ixbench queries --data data/student.txt --hits 300 --misses 100 --seed 5 --out <tmpdir>/q.txt
 {"queries": 400, "hits": 300, "misses": 100, "seed": 5}
 $ toydb/amindex/ixbench run --method 1 --data data/student.txt --queries <tmpdir>/q.txt --workdir <tmpdir> --bufsize 20 --reps 2 --validate
-{"method": 1, "name": "existing", "bufsize": 20, "policy": "lru", "records_total": 17813, "records_indexed": 17813, "records_skipped": 0, "setup": {"seconds": 0.007815, "logical_reads": 17813, "logical_writes": 18266, "physical_reads": 464, "physical_writes": 464, "buffer_hits": 17349, "buffer_misses": 464}, "build": {"seconds": 0.009380, "logical_reads": 35931, "logical_writes": 18140, "physical_reads": 519, "physical_writes": 176, "buffer_hits": 35412, "buffer_misses": 519}, "tree": {"height": 2, "internal_pages": 1, "leaf_pages": 109, "keys": 17810, "entries": 17813, "root_max_keys": 340, "leaf_fill": 0.6442, "file_bytes": 451008}, "validated": true, "validation": {"expected_entries": 17813, "scanned_entries": 17813, "distinct_keys": 17810, "keys_checked": 17810, "absent_checked": 202, "duplicate_keys": 3}, "query": {"count": 400, "found": 300, "not_found": 100, "rids": 300, "rid_checksum": "162c32e2a1859f54", "reps": 2, "seconds_median": 0.000461, "seconds_min": 0.000456, "seconds_all": [0.000466, 0.000456], "first_rep": {"seconds": 0.000466, "logical_reads": 1501, "logical_writes": 0, "physical_reads": 326, "physical_writes": 0, "buffer_hits": 1175, "buffer_misses": 326}}}
+{"method": 1, "name": "existing", "bufsize": 20, "policy": "lru", "records_total": 17813, "records_indexed": 17813, "records_skipped": 0, "setup": {"seconds": 0.013973, "logical_reads": 17813, "logical_writes": 18266, "physical_reads": 464, "physical_writes": 464, "buffer_hits": 17349, "buffer_misses": 464}, "build": {"seconds": 0.013816, "logical_reads": 35931, "logical_writes": 18140, "physical_reads": 519, "physical_writes": 176, "buffer_hits": 35412, "buffer_misses": 519}, "tree": {"height": 2, "internal_pages": 1, "leaf_pages": 109, "keys": 17810, "entries": 17813, "root_max_keys": 340, "leaf_fill": 0.6442, "file_bytes": 451008}, "validated": true, "validation": {"expected_entries": 17813, "scanned_entries": 17813, "distinct_keys": 17810, "keys_checked": 17810, "absent_checked": 202, "duplicate_keys": 3}, "query": {"count": 400, "found": 300, "not_found": 100, "rids": 300, "rid_checksum": "162c32e2a1859f54", "reps": 2, "seconds_median": 0.000745, "seconds_min": 0.000739, "seconds_all": [0.000739, 0.000750], "first_rep": {"seconds": 0.000739, "logical_reads": 1501, "logical_writes": 0, "physical_reads": 326, "physical_writes": 0, "buffer_hits": 1175, "buffer_misses": 326}}}
 $ toydb/amindex/ixbench run --method 2 --data data/student.txt --queries <tmpdir>/q.txt --workdir <tmpdir> --bufsize 20 --reps 2 --validate
-{"method": 2, "name": "incremental", "bufsize": 20, "policy": "lru", "records_total": 17813, "records_indexed": 17813, "records_skipped": 0, "setup": {"seconds": 0.000000, "logical_reads": 0, "logical_writes": 0, "physical_reads": 0, "physical_writes": 0, "buffer_hits": 0, "buffer_misses": 0}, "build": {"seconds": 0.016331, "logical_reads": 52838, "logical_writes": 36406, "physical_reads": 77, "physical_writes": 640, "buffer_hits": 52761, "buffer_misses": 77}, "tree": {"height": 2, "internal_pages": 1, "leaf_pages": 109, "keys": 17810, "entries": 17813, "root_max_keys": 340, "leaf_fill": 0.6442, "file_bytes": 451008}, "validated": true, "validation": {"expected_entries": 17813, "scanned_entries": 17813, "distinct_keys": 17810, "keys_checked": 17810, "absent_checked": 202, "duplicate_keys": 3}, "query": {"count": 400, "found": 300, "not_found": 100, "rids": 300, "rid_checksum": "162c32e2a1859f54", "reps": 2, "seconds_median": 0.000549, "seconds_min": 0.000484, "seconds_all": [0.000484, 0.000614], "first_rep": {"seconds": 0.000484, "logical_reads": 1501, "logical_writes": 0, "physical_reads": 326, "physical_writes": 0, "buffer_hits": 1175, "buffer_misses": 326}}}
+{"method": 2, "name": "incremental", "bufsize": 20, "policy": "lru", "records_total": 17813, "records_indexed": 17813, "records_skipped": 0, "setup": {"seconds": 0.000000, "logical_reads": 0, "logical_writes": 0, "physical_reads": 0, "physical_writes": 0, "buffer_hits": 0, "buffer_misses": 0}, "build": {"seconds": 0.023027, "logical_reads": 52838, "logical_writes": 36406, "physical_reads": 77, "physical_writes": 640, "buffer_hits": 52761, "buffer_misses": 77}, "tree": {"height": 2, "internal_pages": 1, "leaf_pages": 109, "keys": 17810, "entries": 17813, "root_max_keys": 340, "leaf_fill": 0.6442, "file_bytes": 451008}, "validated": true, "validation": {"expected_entries": 17813, "scanned_entries": 17813, "distinct_keys": 17810, "keys_checked": 17810, "absent_checked": 202, "duplicate_keys": 3}, "query": {"count": 400, "found": 300, "not_found": 100, "rids": 300, "rid_checksum": "162c32e2a1859f54", "reps": 2, "seconds_median": 0.000730, "seconds_min": 0.000718, "seconds_all": [0.000742, 0.000718], "first_rep": {"seconds": 0.000742, "logical_reads": 1501, "logical_writes": 0, "physical_reads": 326, "physical_writes": 0, "buffer_hits": 1175, "buffer_misses": 326}}}
+$ toydb/amindex/ixbench run --method 3 --data data/student.txt --queries <tmpdir>/q.txt --workdir <tmpdir> --bufsize 20 --reps 2 --validate
+{"method": 3, "name": "bulk", "bufsize": 20, "policy": "lru", "records_total": 17813, "records_indexed": 17813, "records_skipped": 0, "setup": {"seconds": 0.020992, "logical_reads": 17360, "logical_writes": 18266, "physical_reads": 10, "physical_writes": 463, "buffer_hits": 17350, "buffer_misses": 10}, "build": {"seconds": 0.000871, "logical_reads": 72, "logical_writes": 216, "physical_reads": 72, "physical_writes": 144, "buffer_hits": 0, "buffer_misses": 72}, "tree": {"height": 2, "internal_pages": 1, "leaf_pages": 71, "keys": 17810, "entries": 17813, "root_max_keys": 340, "leaf_fill": 0.9858, "file_bytes": 295208}, "validated": true, "validation": {"expected_entries": 17813, "scanned_entries": 17813, "distinct_keys": 17810, "keys_checked": 17810, "absent_checked": 202, "duplicate_keys": 3}, "query": {"count": 400, "found": 300, "not_found": 100, "rids": 300, "rid_checksum": "18307a24e56d2495", "reps": 2, "seconds_median": 0.000658, "seconds_min": 0.000651, "seconds_all": [0.000665, 0.000651], "first_rep": {"seconds": 0.000665, "logical_reads": 1502, "logical_writes": 0, "physical_reads": 298, "physical_writes": 0, "buffer_hits": 1204, "buffer_misses": 298}}}
 

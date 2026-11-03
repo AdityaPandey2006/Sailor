@@ -72,3 +72,21 @@ Each fix is a few lines, marked `PART 3 FIX n` in `toydb/amlayer/amscan.c`. AM s
 * Method 1's construction alone is about 45 % faster than Method 2 (about 9.5 vs 17 ms) and makes about 32 % fewer page requests, because the Student file already exists. End to end (setup + construction) the two cost about the same.
 * Method 2 interleaves Student-file and index pages in the buffer pool, so it writes more pages (640 vs 176 with 20 frames) but reads almost none. Method 1 re-reads the whole Student file during its scan.
 * A sorted bulk load (Method 3) should produce nearly full leaves and fewer leaf pages than the 64 % fill seen here. That is what Part B should compare against.
+
+
+## 8. Bulk loading (Part B)
+
+Method 3 uses the same key type, duplicate lists, RIDs and AM format. Sorting is
+in-memory over a separate ordinal/key array; the source records are unchanged.
+Stable ties preserve input order. Missing/oversized keys are stored last and
+skipped in the index. Setup includes sorting and writing the Student file while
+collecting actual new RIDs. Construction consumes this sorted stream directly;
+first-fit physical record placement need not itself be scan-sorted.
+
+Leaf packing uses byte occupancy, keeping duplicate groups atomic and balancing
+the last pair when possible. A group too large for one page fails explicitly.
+Internal levels have balanced fanout up to 341 children. Root remains page 0;
+when internal, the first leaf is page 2 and the last leaf is page 1 (no orphan
+pages). No PF, SP or AM implementation changes are needed for bulk loading.
+Compare setup + construction as well as index construction alone; the sorted
+stream preparation must not be hidden. Local replacement remains deferred.

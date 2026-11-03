@@ -21,9 +21,9 @@
  * Missing/oversized roll-no: the record is still stored in the Student file
  *       but is not indexed (counted in recordsSkipped).
  *
- * Methods 1 and 2 are implemented in ixbuild.c.  Method 3 (bulk loading)
- * only has to provide an IX_BuildFn and add it to IX_Methods[]; the
- * measurement, query and validation code below is shared.
+ * Methods 1 and 2 are implemented in ixbuild.c; Method 3 (bulk loading)
+ * is implemented in ixbulk.c. All three use the shared method table,
+ * measurement, query and validation code below.
  */
 #ifndef TOYDB_IXINDEX_H
 #define TOYDB_IXINDEX_H
@@ -101,7 +101,7 @@ typedef struct IX_BuildSpec {
 
 typedef struct IX_BuildResult {
     long recordsTotal;     /* records stored in the Student file          */
-    long recordsIndexed;   /* AM_InsertEntry calls that succeeded          */
+    long recordsIndexed;   /* indexed (key, RID) pairs, including bulk load */
     long recordsSkipped;   /* records without a usable roll-no             */
     IX_Measure setup;      /* work that is not index construction, e.g.
                               writing the Student file before Method 1    */
@@ -149,6 +149,7 @@ int IX_BuildIncremental(const IX_BuildSpec *spec, IX_BuildResult *r,
 /* IX_BuildFn wrappers registered in IX_Methods[]. */
 int IX_Method1(const IX_BuildSpec *spec, IX_BuildResult *r);
 int IX_Method2(const IX_BuildSpec *spec, IX_BuildResult *r);
+int IX_Method3(const IX_BuildSpec *spec, IX_BuildResult *r);
 
 /* AM_OpenIndexScan on the roll-no index (key type and length filled in).
  * Returns a scan descriptor or a negative AM error.  Close it with

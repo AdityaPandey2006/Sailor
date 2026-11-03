@@ -4,7 +4,8 @@ This directory builds a B+ tree index on the Student file, keyed on roll-no, usi
 
 * **Method 1**: index an existing Student file.
 * **Method 2**: build the Student file and its index together, one record at a time.
-* A **common benchmark, validator and tree checker** that Method 3 (bulk loading, Part B) can use unchanged.
+* **Method 3**: bottom-up bulk loading from a sorted key/RID stream.
+* A **common benchmark, validator and tree checker** used by all three methods.
 
 | File | Purpose |
 | --- | --- |
@@ -96,36 +97,72 @@ Search semantics are unchanged. Nothing in PF or SP was changed. The prebuilt `.
 
 **Why the AM sources are compiled from copies:** `toydb/amlayer/pf.h` still says `PF_PAGE_SIZE 1020`, but the PF layer uses 4096. AM sources include `"pf.h"`, which the compiler looks up next to the source file first. Compiling copies in `build/amsrc/` makes that include resolve to `toydb/pflayer/pf.h`. A test checks that the root's `maxKeys` is 340, the value for 4096-byte pages.
 
-## Handover for Part B (Method 3, bulk loading)
+## Method 3: sorted bottom-up bulk loading
 
-### APIs to call
+`ixbulk.c` implements `IX_Method3` and is registered alongside Methods 1 and 2.
+It sorts a separate array of record ordinals and 8-byte keys, preserving the
+original dataset. Ties use the original ordinal, making duplicate order stable.
+Missing/oversized keys sort last: their records are stored, but not indexed.
 
-```c
-#include "amwrap.h"       /* AM + PF prototypes, AM page-header structs */
-#include "slotted.h"      /* Student file: SP_CreateFile/OpenFile/InsertRec/Scan... */
-#include "ixindex.h"      /* everything below */
+Setup includes sorting, writing the reordered slotted Student file, and collecting
+(key, actual new RID) pairs as records are inserted. This sorted in-memory stream
+is the input to construction; the original RIDs are never reused. First-fit
+placement can fill holes in earlier Student pages, so a physical SP scan need not
+be sorted: the key/RID stream is the authoritative sorted representation.
 
-IX_ExtractKey(rec, len, key);              /* roll-no -> 8-byte key, or IXE_NOKEY */
-IX_IndexFileName(studentFile, 0, name, n); /* "<studentFile>.0" */
-IX_LoadStudentFile(data, studentFile, policy, &stored);  /* write records in the given order */
-IX_TimerStart(&t); ...; IX_TimerStop(&t, &r->build);     /* measurement */
-IX_InspectTree(studentFile, 0, &info);     /* B+ tree invariants + shape */
-IX_Validate(studentFile, 0, data, &v);     /* every key -> correct RIDs */
-IX_RunQueries(studentFile, 0, &queries, &qr);            /* common benchmark step */
-IX_OpenScan(amfd, EQUAL, key);             /* AM scan with type/length filled in */
+Construction groups equal keys, packs leaves by actual byte capacity, and balances
+the final pair of leaves when possible. A key's full RID list stays on one leaf;
+a list too large for one leaf returns IXE_INVALID. A 677-RID single-key list fits;
+678 does not. Leaves have the usual AM key directory and linked RID nodes.
+The last leaf occupies page 1 and the first occupies page 2, so all allocated
+pages are reachable and AM's hard-coded leftmost-leaf convention is preserved.
+Empty and single-leaf trees live entirely in root page 0.
+
+Parent levels are built bottom-up with separators equal to the first key of each
+right subtree. Fanout is balanced across each level, up to 341 children per node,
+avoiding a singleton final internal node. The final root is written to page 0.
+The AM header layout and normal AM search/scan code are unchanged. Normal AM
+insertions and deletions after bulk loading are also exercised by tests.
+
+```sh
+# From the repository root:
+make -C toydb/amindex
+python3 toydb/amindex/run_tests.py
+# Requires matplotlib in this Python environment:
+python3 toydb/amindex/run_experiments.py
+
+# Run Method 3 manually:
+cd toydb/amindex
+mkdir -p work
+./ixbench queries --data ../../data/student.txt --hits 2000 --misses 500 --seed 42 --out work/q.txt
+./ixbench run --method 3 --data ../../data/student.txt --queries work/q.txt --workdir work --bufsize 20 --validate --keep
 ```
 
-### Adding Method 3
+The experiment runner now generates construction-time.png, query-time.png,
+query-pages.png and construction-pages.png in outputs/index-construction/.
+It checks equal result counts across methods; Method 3 RIDs/checksums differ
+because records were reordered. Every RID is validated against its Student record.
 
-1. Write `ixbulk.c` with `int IX_Method3(const IX_BuildSpec *spec, IX_BuildResult *r)`, and declare it in `ixindex.h`. The function must:
-   * sort a copy of `spec->data` by key (`memcmp` of the 8-byte keys from `IX_ExtractKey`, which is the same order as AM's `strncmp`). Keep records without a key, but don't index them;
-   * write the sorted Student file to `spec->studentFile`, for example with `IX_LoadStudentFile`, and measure that as `r->setup`;
-   * bulk-build `spec->studentFile.<spec->indexNo>` from the sorted (key, RID) pairs, measured as `r->build`, including closing the files;
-   * set `recordsTotal`, `recordsIndexed` and `recordsSkipped`.
-2. Add `{ 3, "bulk", "...", IX_Method3 }` to `IX_Methods[]` in `ixbuild.c`, and add `build/ixbulk.o` to `IX_OBJ` in the `Makefile`.
-3. Run `./ixbench run --method 3 ... --validate`. Then add `3` to `"methods"` in `experiments.json` and rerun `run_experiments.py`. The comparison table gains a Method 3 column, with the same queries and the same procedure.
+### Final validation
 
-Method 3's Student file is sorted, so its RIDs differ from Methods 1 and 2, and the `rid_checksum` values will not match. Correctness is shown by `--validate` (which checks contents, not RIDs) and by `found`/`rids` counts equal to the other methods.
+Five test groups pass: bulk boundary/duplicate/AM-mutation cases, real and
+150,000-record synthetic datasets with 3 and 20 frames, the real dataset with
+200 frames, and a validated three-method benchmark smoke test. The bulk boundary
+suite covers 0, 1, 254, 255, 508, 509 and 87,000 records; 87,000 forces a
+three-level bulk tree. It verifies every generated record byte-for-byte after
+reordering and checks duplicate list overflow explicitly. Existing validation
+checks every distinct roll number, returned RIDs, absent keys, all entries via
+AM scans, sibling links and separator ranges after reopening.
+
+The benchmark uses 17,813 records, 17,810 distinct keys, 2,500 identical point
+queries, three buffer sizes and five independent runs (45 builds total), with
+five cold query repetitions per run. See comparison.md and analysis.md in the
+results directory for measured results and interpretation. Construction, setup,
+and queries use separate counter/time snapshots. Bulk construction consumes
+already collected sorted pairs, whereas Method 1 scans its existing file; compare
+setup + construction for the full preprocessing cost. Fresh page allocations are
+not themselves logical reads; subsequent fetches are. Physical counts are OS page
+transfers, not guaranteed hardware disk accesses.
 
 ### Index file format (must be kept so AM can read it)
 

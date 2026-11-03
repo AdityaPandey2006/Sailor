@@ -13,14 +13,12 @@
 #include "slotted.h"
 #include "ixindex.h"
 
-/* Method 3 (bulk loading) is added here by the second developer:
- *   { 3, "bulk", "bulk load from a pre-sorted Student file", IX_Method3 },
- */
 const IX_Method IX_Methods[] = {
     { 1, "existing", "index an existing Student file (scan + AM_InsertEntry)",
       IX_Method1 },
     { 2, "incremental", "insert each record, then its index entry",
       IX_Method2 },
+    { 3, "bulk", "bottom-up bulk load from sorted Student records", IX_Method3 },
     { 0, NULL, NULL, NULL }
 };
 

@@ -56,8 +56,8 @@ def run_case(label: str, cmd_fn) -> dict:
 def check_bench(output: str) -> str | None:
     """Both methods must validate and return the same answers."""
     runs = [json.loads(l) for l in output.splitlines() if l.startswith('{"method"')]
-    if len(runs) != 2:
-        return f'expected 2 benchmark results, got {len(runs)}'
+    if len(runs) != 3:
+        return f'expected 3 benchmark results, got {len(runs)}'
     for r in runs:
         if not r['validated'] or r['records_indexed'] != 17813:
             return f'method {r["method"]} not validated / wrong count'
@@ -65,6 +65,8 @@ def check_bench(output: str) -> str | None:
             return f'method {r["method"]} found {r["query"]["found"]}'
     if runs[0]['query']['rid_checksum'] != runs[1]['query']['rid_checksum']:
         return 'methods returned different answers'
+    if len({(r['query']['found'], r['query']['rids']) for r in runs}) != 1:
+        return 'methods returned different result counts'
     return None
 
 
@@ -79,20 +81,21 @@ def main() -> None:
         if p.returncode != 0:
             sys.exit(f'build failed:\n{p.stdout}{p.stderr}')
 
-    results = []
+    results = [run_case('testbulk boundaries, duplicate limits, MRU and AM mutations',
+                        lambda w: [[str(HERE / 'testbulk'), w]])]
     for bufsize, large in TESTINDEX_CASES:
         results.append(run_case(
             f'testindex bufsize={bufsize} synthetic={large}',
             lambda w, b=bufsize, n=large: [[str(HERE / 'testindex'), str(DATA), w,
                                             str(b), str(n)]]))
     results.append(run_case(
-        'ixbench methods 1+2 --validate (bufsize=20)',
+        'ixbench methods 1+2+3 --validate (bufsize=20)',
         lambda w: [[str(HERE / 'ixbench'), 'queries', '--data', str(DATA),
                     '--hits', '300', '--misses', '100', '--seed', '5',
                     '--out', f'{w}/q.txt']] +
                   [[str(HERE / 'ixbench'), 'run', '--method', m, '--data', str(DATA),
                     '--queries', f'{w}/q.txt', '--workdir', w, '--bufsize', '20',
-                    '--reps', '2', '--validate'] for m in ('1', '2')]))
+                    '--reps', '2', '--validate'] for m in ('1', '2', '3')]))
 
     args.output.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')

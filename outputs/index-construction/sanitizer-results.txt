@@ -1,0 +1,25 @@
+AddressSanitizer + UndefinedBehaviorSanitizer; leak detection disabled because container ptrace prevents LeakSanitizer.
+testbulk: exit 0
+bulk boundary 0: passed
+bulk boundary 1: passed
+bulk boundary 254: passed
+bulk boundary 255: passed
+bulk boundary 508: passed
+bulk boundary 509: passed
+bulk boundary 87000: passed
+bulk edges: all passed
+
+testindex: exit 0
+testindex: buffer pool 3 frames
+  keys: ok
+  dataset student.txt: 17813 records, 17813 with a roll-no
+    method 1: height 2, 1 internal + 109 leaf pages, 17810 keys, 17813 entries, 3 duplicate keys: valid
+    method 2: height 2, 1 internal + 109 leaf pages, 17810 keys, 17813 entries, valid at 20 checkpoints and at the end
+    queries: 500 found, 100 not found, identical answers from both methods; 2301 pages accessed (method 1)
+    method 3: height 2, 71 leaves, all RIDs validated
+  dataset synthetic: 150000 records, 149849 with a roll-no
+    method 1: height 3, 5 internal + 894 leaf pages, 144043 keys, 149849 entries, 149 duplicate keys: valid
+    method 2: height 3, 5 internal + 894 leaf pages, 144043 keys, 149849 entries, valid at 20 checkpoints and at the end
+    queries: 500 found, 100 not found, identical answers from both methods; 3920 pages accessed (method 1)
+    method 3: height 3, 576 leaves, all RIDs validated
+testindex: all tests passed

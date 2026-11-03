@@ -220,6 +220,28 @@ static void run_dataset(const char *label, const StudentData *d, int minHeight,
     printf("    queries: %ld found, %ld not found, identical answers from both "
            "methods; %llu pages accessed (method 1)\n", q1.found, q1.notFound,
            q1.m.pf.logical_reads);
+    /* Bulk RIDs differ because records are reordered; compare answers by
+     * cardinality and independently validate every RID, not the RID checksum. */
+    {
+        char f3[1024]; IX_BuildResult r3; IX_TreeInfo t3;
+        IX_QueryResult q3, q3b;
+        path_for(f3, sizeof f3, "t_m3");
+        IX_RemoveFiles(f3, IX_INDEX_NO); spec.studentFile=f3;
+        CHECK_EQ(IX_Method3(&spec,&r3),IXE_OK);
+        CHECK_EQ(r3.recordsTotal,d->count); CHECK_EQ(r3.recordsIndexed,expect);
+        CHECK_EQ(r3.recordsSkipped,d->count-expect);
+        CHECK_EQ(IX_InspectTree(f3,IX_INDEX_NO,&t3),IXE_OK);
+        CHECK(t3.height>=minHeight); CHECK_EQ(t3.entries,expect);
+        CHECK_EQ(IX_Validate(f3,IX_INDEX_NO,d,&v),IXE_OK);
+        spot_checks(f3,d,rolls,nRolls);
+        CHECK_EQ(IX_RunQueries(f3,IX_INDEX_NO,&q,&q3),IXE_OK);
+        CHECK_EQ(IX_RunQueries(f3,IX_INDEX_NO,&q,&q3b),IXE_OK);
+        CHECK_EQ(q3.found,q1.found); CHECK_EQ(q3.rids,q1.rids);
+        CHECK(q3.ridSum==q3b.ridSum);
+        CHECK_EQ(q3.m.pf.logical_reads,q3b.m.pf.logical_reads);
+        printf("    method 3: height %d, %ld leaves, all RIDs validated\n",t3.height,t3.leafPages);
+        IX_RemoveFiles(f3,IX_INDEX_NO);
+    }
     IX_FreeQueries(&q);
 
     IX_RemoveFiles(f1, IX_INDEX_NO);

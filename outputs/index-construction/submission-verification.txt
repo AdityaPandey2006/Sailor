@@ -1,0 +1,381 @@
+Fresh extraction of B24CS1087-B24CS1113.tar.gz; builds and all three parts tested.
+$ make -C toydb/splayer
+make: Entering directory '/tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/toydb/splayer'
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -c testslotted.c
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -c recfile.c
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -c slotted.c
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -c fixedrec.c
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -c studentdata.c
+make -C ../pflayer pflayer.o CFLAGS="-std=gnu17 -fpermissive"
+make[1]: Entering directory '/tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/toydb/pflayer'
+cc -std=gnu17 -fpermissive   -c -o buf.o buf.c
+cc -std=gnu17 -fpermissive   -c -o hash.o hash.c
+cc -std=gnu17 -fpermissive   -c -o pf.o pf.c
+ld -r -o pflayer.o buf.o hash.o pf.o
+make[1]: Leaving directory '/tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/toydb/pflayer'
+cc -o testslotted testslotted.o recfile.o slotted.o fixedrec.o studentdata.o ../pflayer/pflayer.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -c testfixed.c
+cc -o testfixed testfixed.o recfile.o slotted.o fixedrec.o studentdata.o ../pflayer/pflayer.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -c testload.c
+cc -o testload testload.o recfile.o slotted.o fixedrec.o studentdata.o ../pflayer/pflayer.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -c spbench.c
+cc -o spbench spbench.o recfile.o slotted.o fixedrec.o studentdata.o ../pflayer/pflayer.o
+make: Leaving directory '/tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/toydb/splayer'
+cc1: warning: command-line option ‘-fpermissive’ is valid for C++/ObjC++ but not for C
+In file included from buf.c:6:
+pftypes.h:73:8: warning: type defaults to ‘int’ in declaration of ‘PFhashInsert’ [-Wimplicit-int]
+   73 | extern PFhashInsert();
+      |        ^~~~~~~~~~~~
+pftypes.h:74:8: warning: type defaults to ‘int’ in declaration of ‘PFhashDelete’ [-Wimplicit-int]
+   74 | extern PFhashDelete();
+      |        ^~~~~~~~~~~~
+pftypes.h:75:8: warning: type defaults to ‘int’ in declaration of ‘PFhashPrint’ [-Wimplicit-int]
+   75 | extern PFhashPrint();
+      |        ^~~~~~~~~~~
+pftypes.h:80:8: warning: type defaults to ‘int’ in declaration of ‘PFbufGet’ [-Wimplicit-int]
+   80 | extern PFbufGet();
+      |        ^~~~~~~~
+pftypes.h:81:8: warning: type defaults to ‘int’ in declaration of ‘PFbufUnfix’ [-Wimplicit-int]
+   81 | extern PFbufUnfix();
+      |        ^~~~~~~~~~
+pftypes.h:82:8: warning: type defaults to ‘int’ in declaration of ‘PFbufalloc’ [-Wimplicit-int]
+   82 | extern PFbufalloc();
+      |        ^~~~~~~~~~
+pftypes.h:83:8: warning: type defaults to ‘int’ in declaration of ‘PFbufReleaseFile’ [-Wimplicit-int]
+   83 | extern PFbufReleaseFile();
+      |        ^~~~~~~~~~~~~~~~
+buf.c:26:14: warning: conflicting types for built-in function ‘malloc’; expected ‘void *(long unsigned int)’ [-Wbuiltin-declaration-mismatch]
+   26 | extern char *malloc();
+      |              ^~~~~~
+buf.c:7:1: note: ‘malloc’ is declared in header ‘<stdlib.h>’
+    6 | #include "pftypes.h"
+  +++ |+#include <stdlib.h>
+    7 | 
+buf.c:107:8: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  107 | static PFbufInternalAlloc(fd,bpage,writefcn)
+      |        ^~~~~~~~~~~~~~~~~~
+buf.c:212:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  212 | PFbufGet(fd,pagenum,fpage,readfcn,writefcn)
+      | ^~~~~~~~
+buf.c:303:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  303 | PFbufUnfix(fd,pagenum,dirty)
+      | ^~~~~~~~~~
+buf.c:353:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  353 | PFbufAlloc(fd,pagenum,fpage,writefcn)
+      | ^~~~~~~~~~
+buf.c:406:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  406 | PFbufReleaseFile(fd,writefcn)
+      | ^~~~~~~~~~~~~~~~
+buf.c: In function ‘PFbufReleaseFile’:
+buf.c:450:33: warning: implicit declaration of function ‘exit’ [-Wimplicit-function-declaration]
+  450 |                                 exit(1);
+      |                                 ^~~~
+buf.c:450:33: note: include ‘<stdlib.h>’ or provide a declaration of ‘exit’
+buf.c:450:33: warning: incompatible implicit declaration of built-in function ‘exit’ [-Wbuiltin-declaration-mismatch]
+buf.c:450:33: note: include ‘<stdlib.h>’ or provide a declaration of ‘exit’
+buf.c: At top level:
+buf.c:466:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  466 | PFbufUsed(fd,pagenum)
+      | ^~~~~~~~~
+buf.c: In function ‘PFbufPrint’:
+buf.c:526:51: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+  526 |                                 (int)bpage->dirty,(int)&bpage->fpage);
+      |                                                   ^
+cc1: warning: command-line option ‘-fpermissive’ is valid for C++/ObjC++ but not for C
+In file included from hash.c:5:
+pftypes.h:73:8: warning: type defaults to ‘int’ in declaration of ‘PFhashInsert’ [-Wimplicit-int]
+   73 | extern PFhashInsert();
+      |        ^~~~~~~~~~~~
+pftypes.h:74:8: warning: type defaults to ‘int’ in declaration of ‘PFhashDelete’ [-Wimplicit-int]
+   74 | extern PFhashDelete();
+      |        ^~~~~~~~~~~~
+pftypes.h:75:8: warning: type defaults to ‘int’ in declaration of ‘PFhashPrint’ [-Wimplicit-int]
+   75 | extern PFhashPrint();
+      |        ^~~~~~~~~~~
+pftypes.h:80:8: warning: type defaults to ‘int’ in declaration of ‘PFbufGet’ [-Wimplicit-int]
+   80 | extern PFbufGet();
+      |        ^~~~~~~~
+pftypes.h:81:8: warning: type defaults to ‘int’ in declaration of ‘PFbufUnfix’ [-Wimplicit-int]
+   81 | extern PFbufUnfix();
+      |        ^~~~~~~~~~
+pftypes.h:82:8: warning: type defaults to ‘int’ in declaration of ‘PFbufalloc’ [-Wimplicit-int]
+   82 | extern PFbufalloc();
+      |        ^~~~~~~~~~
+pftypes.h:83:8: warning: type defaults to ‘int’ in declaration of ‘PFbufReleaseFile’ [-Wimplicit-int]
+   83 | extern PFbufReleaseFile();
+      |        ^~~~~~~~~~~~~~~~
+hash.c:10:14: warning: conflicting types for built-in function ‘malloc’; expected ‘void *(long unsigned int)’ [-Wbuiltin-declaration-mismatch]
+   10 | extern char *malloc();
+      |              ^~~~~~
+hash.c:6:1: note: ‘malloc’ is declared in header ‘<stdlib.h>’
+    5 | #include "pftypes.h"
+  +++ |+#include <stdlib.h>
+    6 | 
+hash.c:68:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+   68 | PFhashInsert(fd,page,bpage)
+      | ^~~~~~~~~~~~
+hash.c:121:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  121 | PFhashDelete(fd,page)
+      | ^~~~~~~~~~~~
+hash.c: In function ‘PFhashDelete’:
+hash.c:163:9: warning: implicit declaration of function ‘free’ [-Wimplicit-function-declaration]
+  163 |         free((char *)entry);
+      |         ^~~~
+hash.c:163:9: note: include ‘<stdlib.h>’ or provide a declaration of ‘free’
+hash.c:163:9: warning: incompatible implicit declaration of built-in function ‘free’ [-Wbuiltin-declaration-mismatch]
+hash.c:163:9: note: include ‘<stdlib.h>’ or provide a declaration of ‘free’
+hash.c: At top level:
+hash.c:169:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  169 | PFhashPrint()
+      | ^~~~~~~~~~~
+hash.c: In function ‘PFhashPrint’:
+hash.c:189:61: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘struct PFbpage *’ [-Wformat=]
+  189 |                                 printf("\tfd: %d, page: %d %d\n",
+      |                                                            ~^
+      |                                                             |
+      |                                                             int
+  190 |                                         entry->fd, entry->page,entry->bpage);
+      |                                                                ~~~~~~~~~~~~
+      |                                                                     |
+      |                                                                     struct PFbpage *
+cc1: warning: command-line option ‘-fpermissive’ is valid for C++/ObjC++ but not for C
+In file included from pf.c:7:
+pftypes.h:73:8: warning: type defaults to ‘int’ in declaration of ‘PFhashInsert’ [-Wimplicit-int]
+   73 | extern PFhashInsert();
+      |        ^~~~~~~~~~~~
+pftypes.h:74:8: warning: type defaults to ‘int’ in declaration of ‘PFhashDelete’ [-Wimplicit-int]
+   74 | extern PFhashDelete();
+      |        ^~~~~~~~~~~~
+pftypes.h:75:8: warning: type defaults to ‘int’ in declaration of ‘PFhashPrint’ [-Wimplicit-int]
+   75 | extern PFhashPrint();
+      |        ^~~~~~~~~~~
+pftypes.h:80:8: warning: type defaults to ‘int’ in declaration of ‘PFbufGet’ [-Wimplicit-int]
+   80 | extern PFbufGet();
+      |        ^~~~~~~~
+pftypes.h:81:8: warning: type defaults to ‘int’ in declaration of ‘PFbufUnfix’ [-Wimplicit-int]
+   81 | extern PFbufUnfix();
+      |        ^~~~~~~~~~
+pftypes.h:82:8: warning: type defaults to ‘int’ in declaration of ‘PFbufalloc’ [-Wimplicit-int]
+   82 | extern PFbufalloc();
+      |        ^~~~~~~~~~
+pftypes.h:83:8: warning: type defaults to ‘int’ in declaration of ‘PFbufReleaseFile’ [-Wimplicit-int]
+   83 | extern PFbufReleaseFile();
+      |        ^~~~~~~~~~~~~~~~
+pf.c:39:14: warning: conflicting types for built-in function ‘malloc’; expected ‘void *(long unsigned int)’ [-Wbuiltin-declaration-mismatch]
+   39 | extern char *malloc();
+      |              ^~~~~~
+pf.c:8:1: note: ‘malloc’ is declared in header ‘<stdlib.h>’
+    7 | #include "pftypes.h"
+  +++ |+#include <stdlib.h>
+    8 | 
+pf.c: In function ‘savestr’:
+pf.c:52:23: warning: implicit declaration of function ‘strlen’ [-Wimplicit-function-declaration]
+   52 |         if ((s=malloc(strlen(str)+1))!= NULL)
+      |                       ^~~~~~
+pf.c:8:1: note: include ‘<string.h>’ or provide a declaration of ‘strlen’
+    7 | #include "pftypes.h"
+  +++ |+#include <string.h>
+    8 | 
+pf.c:52:23: warning: incompatible implicit declaration of built-in function ‘strlen’ [-Wbuiltin-declaration-mismatch]
+   52 |         if ((s=malloc(strlen(str)+1))!= NULL)
+      |                       ^~~~~~
+pf.c:52:23: note: include ‘<string.h>’ or provide a declaration of ‘strlen’
+pf.c:53:17: warning: implicit declaration of function ‘strcpy’ [-Wimplicit-function-declaration]
+   53 |                 strcpy(s,str);
+      |                 ^~~~~~
+pf.c:53:17: note: include ‘<string.h>’ or provide a declaration of ‘strcpy’
+pf.c:53:17: warning: incompatible implicit declaration of built-in function ‘strcpy’ [-Wbuiltin-declaration-mismatch]
+pf.c:53:17: note: include ‘<string.h>’ or provide a declaration of ‘strcpy’
+pf.c: At top level:
+pf.c:57:8: warning: return type defaults to ‘int’ [-Wimplicit-int]
+   57 | static PFtabFindFname(fname)
+      |        ^~~~~~~~~~~~~~
+pf.c: In function ‘PFtabFindFname’:
+pf.c:75:46: warning: implicit declaration of function ‘strcmp’ [-Wimplicit-function-declaration]
+   75 |                 if(PFftab[i].fname != NULL&& strcmp(PFftab[i].fname,fname) == 0)
+      |                                              ^~~~~~
+pf.c:75:46: note: include ‘<string.h>’ or provide a declaration of ‘strcmp’
+pf.c: At top level:
+pf.c:82:8: warning: return type defaults to ‘int’ [-Wimplicit-int]
+   82 | static PFftabFindFree()
+      |        ^~~~~~~~~~~~~~
+pf.c:104:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  104 | PFreadfcn(fd,pagenum,buf)
+      | ^~~~~~~~~
+pf.c: In function ‘PFreadfcn’:
+pf.c:123:20: warning: implicit declaration of function ‘lseek’; did you mean ‘fseek’? [-Wimplicit-function-declaration]
+  123 |         if ((error=lseek(PFftab[fd].unixfd,pagenum*sizeof(PFfpage)+PF_HDR_SIZE,
+      |                    ^~~~~
+      |                    fseek
+pf.c:130:19: warning: implicit declaration of function ‘read’; did you mean ‘fread’? [-Wimplicit-function-declaration]
+  130 |         if((error=read(PFftab[fd].unixfd,(char *)buf,sizeof(PFfpage)))
+      |                   ^~~~
+      |                   fread
+pf.c: At top level:
+pf.c:142:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  142 | PFwritefcn(fd,pagenum,buf)
+      | ^~~~~~~~~~
+pf.c: In function ‘PFwritefcn’:
+pf.c:169:19: warning: implicit declaration of function ‘write’; did you mean ‘fwrite’? [-Wimplicit-function-declaration]
+  169 |         if((error=write(PFftab[fd].unixfd,(char *)buf,sizeof(PFfpage)))
+      |                   ^~~~~
+      |                   fwrite
+pf.c: At top level:
+pf.c:223:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  223 | PF_CreateFile(fname)
+      | ^~~~~~~~~~~~~
+pf.c: In function ‘PF_CreateFile’:
+pf.c:256:17: warning: implicit declaration of function ‘close’; did you mean ‘pclose’? [-Wimplicit-function-declaration]
+  256 |                 close(fd);
+      |                 ^~~~~
+      |                 pclose
+pf.c:257:17: warning: implicit declaration of function ‘unlink’ [-Wimplicit-function-declaration]
+  257 |                 unlink(fname);
+      |                 ^~~~~~
+pf.c: At top level:
+pf.c:270:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  270 | PF_DestroyFile(fname)
+      | ^~~~~~~~~~~~~~
+pf.c:304:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  304 | PF_OpenFile(fname)
+      | ^~~~~~~~~~~
+pf.c:384:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  384 | PF_CloseFile(fd)
+      | ^~~~~~~~~~~~
+pf.c: In function ‘PF_CloseFile’:
+pf.c:442:9: warning: implicit declaration of function ‘free’ [-Wimplicit-function-declaration]
+  442 |         free((char *)PFftab[fd].fname);
+      |         ^~~~
+pf.c:442:9: note: include ‘<stdlib.h>’ or provide a declaration of ‘free’
+pf.c:442:9: warning: incompatible implicit declaration of built-in function ‘free’ [-Wbuiltin-declaration-mismatch]
+pf.c:442:9: note: include ‘<stdlib.h>’ or provide a declaration of ‘free’
+pf.c: At top level:
+pf.c:449:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  449 | PF_GetFirstPage(fd,pagenum,pagebuf)
+      | ^~~~~~~~~~~~~~~
+pf.c: In function ‘PF_GetFirstPage’:
+pf.c:471:16: warning: implicit declaration of function ‘PF_GetNextPage’; did you mean ‘PF_GetFirstPage’? [-Wimplicit-function-declaration]
+  471 |         return(PF_GetNextPage(fd,pagenum,pagebuf));
+      |                ^~~~~~~~~~~~~~
+      |                PF_GetFirstPage
+pf.c: At top level:
+pf.c:475:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  475 | PF_GetNextPage(fd,pagenum,pagebuf)
+      | ^~~~~~~~~~~~~~
+pf.c:537:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  537 | PF_GetThisPage(fd,pagenum,pagebuf)
+      | ^~~~~~~~~~~~~~
+pf.c: In function ‘PF_GetThisPage’:
+pf.c:585:25: warning: implicit declaration of function ‘exit’ [-Wimplicit-function-declaration]
+  585 |                         exit(1);
+      |                         ^~~~
+pf.c:585:25: note: include ‘<stdlib.h>’ or provide a declaration of ‘exit’
+pf.c:585:25: warning: incompatible implicit declaration of built-in function ‘exit’ [-Wbuiltin-declaration-mismatch]
+pf.c:585:25: note: include ‘<stdlib.h>’ or provide a declaration of ‘exit’
+pf.c: At top level:
+pf.c:592:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  592 | PF_AllocPage(fd,pagenum,pagebuf)
+      | ^~~~~~~~~~~~
+pf.c: In function ‘PF_AllocPage’:
+pf.c:632:28: warning: implicit declaration of function ‘PFbufAlloc’; did you mean ‘PFbufalloc’? [-Wimplicit-function-declaration]
+  632 |                 if ((error=PFbufAlloc(fd,*pagenum,&fpage,PFwritefcn))!= PFE_OK)
+      |                            ^~~~~~~~~~
+      |                            PFbufalloc
+pf.c:643:25: warning: incompatible implicit declaration of built-in function ‘exit’ [-Wbuiltin-declaration-mismatch]
+  643 |                         exit(1);
+      |                         ^~~~
+pf.c:643:25: note: include ‘<stdlib.h>’ or provide a declaration of ‘exit’
+pf.c: At top level:
+pf.c:663:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  663 | PF_DisposePage(fd,pagenum)
+      | ^~~~~~~~~~~~~~
+pf.c: In function ‘PF_DisposePage’:
+pf.c:700:25: warning: incompatible implicit declaration of built-in function ‘exit’ [-Wbuiltin-declaration-mismatch]
+  700 |                         exit(1);
+      |                         ^~~~
+pf.c:700:25: note: include ‘<stdlib.h>’ or provide a declaration of ‘exit’
+pf.c: At top level:
+pf.c:725:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+  725 | PF_UnfixPage(fd,pagenum,dirty)
+      | ^~~~~~~~~~~~
+
+$ python3 toydb/splayer/run_tests.py --with-pf
+built: -B -C /tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/toydb/splayer
+built: -B -C /tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/toydb/pflayer tests CFLAGS=-std=gnu17 -fpermissive
+PASS testhash
+PASS testpf
+PASS teststats
+PASS testcapacity 1
+PASS testcapacity 2
+PASS testcapacity 5
+PASS testcapacity 20
+PASS testcapacity 32
+PASS testreplacement lru
+PASS testreplacement mru
+PASS testdirty lru
+PASS testdirty mru
+PASS testslotted 1 cached
+PASS testslotted 1 scan
+PASS testslotted 2 cached
+PASS testslotted 2 scan
+PASS testslotted 20 cached
+PASS testslotted 20 scan
+PASS testfixed 1 cached
+PASS testfixed 1 scan
+PASS testfixed 2 cached
+PASS testfixed 2 scan
+PASS testfixed 20 cached
+PASS testfixed 20 scan
+PASS testload data/student.txt 1 17813 100 108 128 256
+PASS testload data/student.txt 20 17813 100 108 128 256
+
+26/26 passed; report: /tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/outputs/slotted-pages/test-results.txt
+
+$ make -C toydb/amindex
+make: Entering directory '/tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/toydb/amindex'
+mkdir -p build
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c ixbench.c -o build/ixbench.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c ixindex.c -o build/ixindex.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c ixbuild.c -o build/ixbuild.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c ixbulk.c -o build/ixbulk.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c ../splayer/recfile.c -o build/sp_recfile.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c ../splayer/slotted.c -o build/sp_slotted.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c ../splayer/studentdata.c -o build/sp_studentdata.o
+mkdir -p build/amsrc
+cp ../amlayer/am.c build/amsrc/am.c
+cc -std=gnu17 -fpermissive -w -O2 -I../pflayer -I../amlayer -c build/amsrc/am.c -o build/am_am.o
+cp ../amlayer/amfns.c build/amsrc/amfns.c
+cc -std=gnu17 -fpermissive -w -O2 -I../pflayer -I../amlayer -c build/amsrc/amfns.c -o build/am_amfns.o
+cp ../amlayer/amsearch.c build/amsrc/amsearch.c
+cc -std=gnu17 -fpermissive -w -O2 -I../pflayer -I../amlayer -c build/amsrc/amsearch.c -o build/am_amsearch.o
+cp ../amlayer/aminsert.c build/amsrc/aminsert.c
+cc -std=gnu17 -fpermissive -w -O2 -I../pflayer -I../amlayer -c build/amsrc/aminsert.c -o build/am_aminsert.o
+cp ../amlayer/amstack.c build/amsrc/amstack.c
+cc -std=gnu17 -fpermissive -w -O2 -I../pflayer -I../amlayer -c build/amsrc/amstack.c -o build/am_amstack.o
+cp ../amlayer/amglobals.c build/amsrc/amglobals.c
+cc -std=gnu17 -fpermissive -w -O2 -I../pflayer -I../amlayer -c build/amsrc/amglobals.c -o build/am_amglobals.o
+cp ../amlayer/amscan.c build/amsrc/amscan.c
+cc -std=gnu17 -fpermissive -w -O2 -I../pflayer -I../amlayer -c build/amsrc/amscan.c -o build/am_amscan.o
+cp ../amlayer/amprint.c build/amsrc/amprint.c
+cc -std=gnu17 -fpermissive -w -O2 -I../pflayer -I../amlayer -c build/amsrc/amprint.c -o build/am_amprint.o
+cc -o ixbench build/ixbench.o build/ixindex.o build/ixbuild.o build/ixbulk.o build/sp_recfile.o build/sp_slotted.o build/sp_studentdata.o build/am_am.o build/am_amfns.o build/am_amsearch.o build/am_aminsert.o build/am_amstack.o build/am_amglobals.o build/am_amscan.o build/am_amprint.o ../pflayer/pflayer.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c testindex.c -o build/testindex.o
+cc -o testindex build/testindex.o build/ixindex.o build/ixbuild.o build/ixbulk.o build/sp_recfile.o build/sp_slotted.o build/sp_studentdata.o build/am_am.o build/am_amfns.o build/am_amsearch.o build/am_aminsert.o build/am_amstack.o build/am_amglobals.o build/am_amscan.o build/am_amprint.o ../pflayer/pflayer.o
+cc -std=gnu99 -O2 -Wall -Wextra -Wno-unused-function -I../pflayer -I../splayer -I../amlayer -c testbulk.c -o build/testbulk.o
+cc -o testbulk build/testbulk.o build/ixindex.o build/ixbuild.o build/ixbulk.o build/sp_recfile.o build/sp_slotted.o build/sp_studentdata.o build/am_am.o build/am_amfns.o build/am_amsearch.o build/am_aminsert.o build/am_amstack.o build/am_amglobals.o build/am_amscan.o build/am_amprint.o ../pflayer/pflayer.o
+make: Leaving directory '/tmp/sailor-submission-2sr566fd/B24CS1087-B24CS1113/toydb/amindex'
+ixbulk.c: In function ‘build’:
+ixbulk.c:94:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+   94 |         if(g[ng].bytes>PF_PAGE_SIZE-AM_sl) { err=IXE_INVALID; goto done; }
+      |                       ^
+ixbulk.c:110:42: warning: comparison of integer expressions of different signedness: ‘int’ and ‘long unsigned int’ [-Wsign-compare]
+  110 |         while(b>a+1 && right+g[b-1].bytes<=PF_PAGE_SIZE-AM_sl &&
+      |                                          ^~
+
+$ python3 toydb/amindex/run_tests.py
+PASS  testbulk boundaries, duplicate limits, MRU and AM mutations  (1.244 s)
+PASS  testindex bufsize=3 synthetic=150000  (6.179 s)
+PASS  testindex bufsize=20 synthetic=150000  (4.175 s)
+PASS  testindex bufsize=200 synthetic=0  (0.166 s)
+PASS  ixbench methods 1+2+3 --validate (bufsize=20)  (0.179 s)
+5/5 passed; log in outputs/index-construction/test-results.txt

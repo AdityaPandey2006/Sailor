@@ -97,7 +97,7 @@ def markdown(summary: list[dict], cfg: dict, nq: int) -> str:
     methods = sorted({s['method'] for s in summary})
     names = {s['method']: s['name'] for s in summary}
     lines = [
-        '# Index construction on roll-no: preliminary results',
+        '# Index construction on roll-no: three-method comparison',
         '',
         f'Generated {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")} by '
         '`toydb/amindex/run_experiments.py`. Every value is the median of '
@@ -133,6 +133,7 @@ def markdown(summary: list[dict], cfg: dict, nq: int) -> str:
         row('Query completion time', lambda s: ms(s['query_seconds_median']))
         row('Query pages accessed', lambda s: f'{int(s["query_logical_reads"])}')
         row('Query disk reads', lambda s: f'{int(s["query_physical_reads"])}')
+        row('Query disk writes', lambda s: f'{int(s["query_physical_writes"])}')
         row('Pages accessed per query', lambda s: f'{s["query_logical_reads"] / nq:.2f}')
         row('RIDs returned', lambda s: f'{int(s["query_rids"])}')
         row('Tree height / internal / leaf pages',
@@ -147,10 +148,38 @@ def markdown(summary: list[dict], cfg: dict, nq: int) -> str:
         'the Student file beforehand and opening it are reported as setup. '
         'Method 2 construction covers building the Student file and the index '
         'together, so it has no separate setup. Compare "Setup + construction" '
-        'for the end-to-end cost.',
+        'for the end-to-end cost. Method 3 setup includes sorting a copy and '
+        'writing the reordered Student file while collecting key/RID pairs. '
+        'Construction consumes those sorted pairs and writes the AM tree '
+        'bottom-up, including the final close. Sorting is therefore not free '
+        'in the end-to-end comparison.',
         '',
     ]
     return '\n'.join(lines)
+
+
+def graphs(summary: list[dict], out: Path) -> None:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    plots = [('construction-time', 'build_seconds', 'Index construction time (ms)', 1000),
+             ('query-time', 'query_seconds_median', 'Query completion time (ms)', 1000),
+             ('query-pages', 'query_logical_reads', 'Query page requests (logical reads)', 1),
+             ('construction-pages', 'build_logical_reads', 'Construction page requests (logical reads)', 1)]
+    sizes = sorted({r['bufsize'] for r in summary})
+    methods = sorted({r['method'] for r in summary})
+    for filename, metric, ylabel, scale in plots:
+        fig, ax = plt.subplots(figsize=(8, 4.8), layout='constrained')
+        width = .8 / len(sizes)
+        for j, size in enumerate(sizes):
+            by = {r['method']: r for r in summary if r['bufsize'] == size}
+            ax.bar([i + (j-(len(sizes)-1)/2)*width for i in range(len(methods))],
+                   [by[m][metric]*scale for m in methods], width, label=f'{size} frames')
+        ax.set_xticks(range(len(methods)), [f'Method {m}' for m in methods])
+        ax.set_xlabel('Indexing method'); ax.set_ylabel(ylabel)
+        ax.set_title('Student roll-number index | medians over independent runs')
+        ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True); ax.margins(y=.22); ax.legend()
+        fig.savefig(out / f'{filename}.png', dpi=160); plt.close(fig)
 
 
 def main() -> None:
@@ -194,18 +223,22 @@ def main() -> None:
 
     rows = [flatten(r) for r in results]
     summary = summarize(rows)
+    # Different sorted-file RIDs are expected, but result cardinalities must agree.
+    if len({(r['query_found'], r['query_not_found'], r['query_rids']) for r in rows}) != 1:
+        sys.exit('query result cardinalities differ between runs/methods')
     with open(out / 'raw_results.jsonl', 'w') as f:
         for r in results:
             f.write(json.dumps(r) + '\n')
     for name, data in (('results.csv', rows), ('summary.csv', summary)):
         with open(out / name, 'w', newline='') as f:
-            w = csv.DictWriter(f, fieldnames=list(data[0]))
+            w = csv.DictWriter(f, fieldnames=list(data[0]), lineterminator="\n")
             w.writeheader()
             w.writerows(data)
     (out / 'config.json').write_text(json.dumps(
         {**cfg, 'dataset_resolved': str(dataset.relative_to(REPO)),
          'query_file': qinfo}, indent=2) + '\n')
     (out / 'comparison.md').write_text(markdown(summary, cfg, qinfo['queries']))
+    graphs(summary, out)
     print(f'wrote {out.relative_to(REPO)}/: comparison.md, summary.csv, '
           'results.csv, raw_results.jsonl, config.json, queries.txt')
 

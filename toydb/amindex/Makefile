@@ -31,11 +31,11 @@ AM_SRC = am amfns amsearch aminsert amstack amglobals amscan amprint
 AM_OBJ = $(patsubst %,build/am_%.o,$(AM_SRC))
 SP_SRC = recfile slotted studentdata
 SP_OBJ = $(patsubst %,build/sp_%.o,$(SP_SRC))
-IX_OBJ = build/ixindex.o build/ixbuild.o
+IX_OBJ = build/ixindex.o build/ixbuild.o build/ixbulk.o
 HDR    = amwrap.h ixindex.h $(PF)/pf.h $(AM)/am.h $(SP)/recfile.h $(SP)/slotted.h \
          $(SP)/studentdata.h
 LIBS   = $(IX_OBJ) $(SP_OBJ) $(AM_OBJ) $(PF)/pflayer.o
-PROGS  = ixbench testindex
+PROGS  = ixbench testindex testbulk
 
 all: $(PROGS)
 
@@ -61,6 +61,9 @@ ixbench: build/ixbench.o $(LIBS)
 	$(CC) -o $@ $^
 
 testindex: build/testindex.o $(LIBS)
+	$(CC) -o $@ $^
+
+testbulk: build/testbulk.o $(LIBS)
 	$(CC) -o $@ $^
 
 clean:

@@ -1,6 +1,6 @@
 {
   "dataset": "data/student.txt",
-  "methods": [1, 2],
+  "methods": [1, 2, 3],
   "buffer_sizes": [20, 50, 200],
   "policy": "lru",
   "queries": {"hits": 2000, "misses": 500, "seed": 42},
